@@ -3,6 +3,7 @@ import prisma from "../config/db";
 import bcrypt from "bcrypt";
 import { randomUUID } from "crypto";
 import { hashRefreshToken, signAccessToken, signRefreshToken, verifyRefreshToken } from "../utils/jwt";
+import { AuthenticatedRequest, JwtPayload } from "../types/auth";
 
 const REFRESH_TOKEN_DAYS = Number(process.env.REFRESH_TOKEN_DAYS || 30);
 const ACCESS_TOKEN_MINUTES = Number(process.env.ACCESS_TOKEN_MINUTES || 15);
@@ -75,7 +76,40 @@ function tempUserName(email: string) {
     const localPart = email.split("@")[0]?.replace(/[^a-z0-9]/gi, "").toLowerCase() || "user";
     return `${localPart}-${randomUUID().slice(0, 8)}`;
 }
+export async function setUsername(req: AuthenticatedRequest, res: Response) {
+    const auth = req.auth;
+    if (!auth) {
+        return res.status(401).json({ message: "Unauthorized" });
+    }
 
+    const { username } = req.body as { username?: string };
+    const nextUsername = typeof username === "string" ? username.trim().toLowerCase() : "";
+    if (!nextUsername) {
+        return res.status(400).json({ message: "Username is required" });
+    }
+    if (nextUsername.length < 3 || nextUsername.length > 32) {
+        return res.status(400).json({ message: "Username must be 3-32 characters" });
+    }
+    if (!/^[a-z0-9_]+$/.test(nextUsername)) {
+        return res.status(400).json({ message: "Username may contain letters, numbers, and underscores" });
+    }
+
+    const existing = await prisma.user.findUnique({
+        where: { username: nextUsername },
+        select: { id: true }
+    });
+    if (existing && existing.id !== auth.id) {
+        return res.status(409).json({ message: "Username already taken" });
+    }
+
+    const updated = await prisma.user.update({
+        where: { id: auth.id },
+        data: { username: nextUsername },
+        select: { id: true, username: true, email: true }
+    });
+
+    return res.status(200).json({ message: "Username updated", user: updated });
+}
 export async function Login(req: Request, res: Response) {
     // Implementation for login
     const {username, email, password} = req.body as{
