@@ -1,40 +1,14 @@
 import { Login, Logout, Refresh, Register, setUsername } from "../controllers/auth.controller";
 import { Router } from "express";
-import rateLimit from "express-rate-limit";
 import { authMiddleware } from "../middlewares/auth.middleware";
+import {
+	loginLimiter,
+	logoutLimiter,
+	refreshLimiter,
+	registerLimiter
+} from "../middlewares/rateLimiter.middleware";
+
 const authRouter = Router();
-
-const loginLimiter = rateLimit({
-	windowMs: 15 * 60 * 1000,
-	limit: 10,
-	standardHeaders: true,
-	legacyHeaders: false,
-	message: { message: "Too many login attempts. Try again later." }
-});
-
-const registerLimiter = rateLimit({
-	windowMs: 60 * 60 * 1000,
-	limit: 5,
-	standardHeaders: true,
-	legacyHeaders: false,
-	message: { message: "Too many registrations. Try again later." }
-});
-
-const refreshLimiter = rateLimit({
-	windowMs: 15 * 60 * 1000,
-	limit: 30,
-	standardHeaders: true,
-	legacyHeaders: false,
-	message: { message: "Too many refresh requests. Try again later." }
-});
-
-const logoutLimiter = rateLimit({
-	windowMs: 15 * 60 * 1000,
-	limit: 30,
-	standardHeaders: true,
-	legacyHeaders: false,
-	message: { message: "Too many logout requests. Try again later." }
-});
 
 authRouter.post("/login", loginLimiter, Login);
 authRouter.post("/username", authMiddleware, setUsername);
