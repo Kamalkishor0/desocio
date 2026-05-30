@@ -54,7 +54,7 @@ export function clearAccessCookie(res: Response) {
 
 export async function issueTokens(user: { id: string; username: string; email: string }) {
     const accessToken = signAccessToken({ id: user.id, username: user.username, email: user.email });
-    const refreshToken = signRefreshToken({ id: user.id, username: user.username, email: user.email });
+    const refreshToken = signRefreshToken({ id: user.id });
     const tokenHash = hashRefreshToken(refreshToken);
 
     await prisma.refreshToken.create({

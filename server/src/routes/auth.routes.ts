@@ -1,4 +1,4 @@
-import { Login, Logout, Refresh, Register, setUsername } from "../controllers/auth.controller";
+import { Login, Logout, Refresh, Register, setUsername, me } from "../controllers/auth.controller";
 import { Router } from "express";
 import { authMiddleware } from "../middlewares/auth.middleware";
 import {
@@ -15,5 +15,6 @@ authRouter.post("/username", authMiddleware, setUsername);
 authRouter.post("/register", registerLimiter, Register);
 authRouter.post("/refresh", refreshLimiter, Refresh);
 authRouter.post("/logout", logoutLimiter, Logout);
+authRouter.get("/me", authMiddleware, me);
 
 export default authRouter;

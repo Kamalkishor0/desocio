@@ -5,6 +5,10 @@ export type JwtPayload = {
     username: string;
     email: string;
 }
+
+export type RefreshJwtPayload = {
+    id: string;
+}
 export type AuthenticatedRequest = Request & {
     auth?: JwtPayload;
 }

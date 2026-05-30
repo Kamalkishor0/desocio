@@ -1,6 +1,6 @@
 import crypto from "crypto";
 import jwt, { type JwtPayload as JsonWebTokenPayload, type SignOptions } from "jsonwebtoken";
-import { JwtPayload } from "../types/auth";
+import { JwtPayload, RefreshJwtPayload } from "../types/auth";
 
 const ACCESS_EXPIRES_IN = (process.env.JWT_ACCESS_EXPIRES_IN || "15m") as SignOptions["expiresIn"];
 const REFRESH_EXPIRES_IN = (process.env.JWT_REFRESH_EXPIRES_IN || "30d") as SignOptions["expiresIn"];
@@ -25,7 +25,7 @@ export function signAccessToken(payload: JsonWebTokenPayload) {
     return jwt.sign(payload, getAccessSecret(), { expiresIn: ACCESS_EXPIRES_IN });
 }
 
-export function signRefreshToken(payload: JsonWebTokenPayload) {
+export function signRefreshToken(payload: RefreshJwtPayload) {
     return jwt.sign(payload, getRefreshSecret(), { expiresIn: REFRESH_EXPIRES_IN });
 }
 
@@ -45,17 +45,17 @@ export function verifyAccessToken(token: string): JwtPayload | null {
     }
 }
 
-export function verifyRefreshToken(token: string): JwtPayload | null {
+export function verifyRefreshToken(token: string): RefreshJwtPayload | null {
     try {
-        const decoded = jwt.verify(token, getRefreshSecret()) as JwtPayload;
+        const decoded = jwt.verify(token, getRefreshSecret()) as RefreshJwtPayload;
         if (typeof decoded !== "object" || decoded === null) {
             return null;
         }
-        const { id, username, email } = decoded;
-        if (typeof id !== "string" || typeof username !== "string" || typeof email !== "string") {
+        const { id } = decoded;
+        if (typeof id !== "string") {
             return null;
         }
-        return { id, username, email };
+        return { id };
     } catch {
         return null;
     }

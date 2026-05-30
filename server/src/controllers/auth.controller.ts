@@ -13,7 +13,7 @@ import {
     setRefreshCookie
 } from "../utils/authTokens";
 import { normalizeEmail, tempUserName } from "../utils/auth";
-import { AuthenticatedRequest, JwtPayload } from "../types/auth";
+import { AuthenticatedRequest } from "../types/auth";
 
 export async function setUsername(req: AuthenticatedRequest, res: Response) {
     const auth = req.auth;
@@ -158,13 +158,8 @@ export async function Refresh(req: Request, res: Response) {
         return res.status(401).json({ message: "User not found" });
     }
 
-    const newRefreshToken = signRefreshToken({
-        id: user.id,
-        username: user.username,
-        email: user.email
-    });
+    const newRefreshToken = signRefreshToken({ id: user.id });
     const newTokenHash = hashRefreshToken(newRefreshToken);
-
     await prisma.$transaction([
         prisma.refreshToken.update({
             where: { id: storedToken.id },
@@ -206,4 +201,18 @@ export async function Logout(req: Request, res: Response) {
     clearAccessCookie(res);
     clearRefreshCookie(res);
     return res.status(200).json({ message: "Logged out" });
+}
+export async function me(req: AuthenticatedRequest, res: Response) {
+    const auth = req.auth;
+    if (!auth) {
+        return res.status(401).json({ message: "Unauthorized" });
+    }
+    const user = await prisma.user.findUnique({
+        where: { id: auth.id },
+        select: { id: true, username: true, email: true, createdAt: true }
+    });
+    if (!user) {
+        return res.status(404).json({ message: "User not found" });
+    }
+    return res.status(200).json({ user });
 }
