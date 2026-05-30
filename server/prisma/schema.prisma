@@ -23,6 +23,30 @@ enum AccountStatus {
   deleted
 }
 
+enum PostVisibility {
+  friends
+  private
+}
+
+enum ThoughtVisibility {
+  public
+  friends
+  private
+}
+
+enum TypeOfThought {
+  thoughts
+  recommendations
+  ideas
+  discussions
+}
+
+enum PostReactionType {
+  heart
+  clap
+  laugh
+}
+
 model User {
   id String @id @default(cuid())
 
@@ -47,7 +71,15 @@ model User {
   userAFriendships Friendship[] @relation("UserAFriendships")
   userBFriendships Friendship[] @relation("UserBFriendships")
 
-  refreshTokens RefreshToken[]
+  refreshTokens     RefreshToken[]
+  posts             Post[]
+  thoughts          Thought[]
+  postComments      PostComment[]
+  thoughtComments   ThoughtComment[]
+  postReactions     PostReaction[]
+  savedThoughts     SavedThought[]
+  supportedThoughts ThoughtSupport[]
+  thoughtReports    ThoughtReport[]
 
   @@map("users")
 }
@@ -89,6 +121,129 @@ model Friendship {
   @@map("friendships")
 }
 
+model Post {
+  id String @id @default(cuid())
+
+  authorId String
+  author   User   @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  text      String?  @db.VarChar(2000)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  photos     PostPhoto[]
+  comments   PostComment[]
+  reactions  PostReaction[]
+  visibility PostVisibility @default(friends)
+
+  @@index([authorId, createdAt])
+  @@map("posts")
+}
+
+model PostPhoto {
+  id String @id @default(cuid())
+
+  postId   String
+  post     Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
+  url      String
+  position Int
+
+  @@unique([postId, position])
+  @@map("post_photos")
+}
+
+model PostReaction {
+  id String @id @default(cuid())
+
+  type PostReactionType
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  postId String
+  post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([userId, postId])
+  @@index([postId])
+  @@index([userId])
+  @@map("post_reactions")
+}
+
+model Thought {
+  id                String            @id @default(cuid())
+  authorId          String
+  author            User              @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  text              String            @db.VarChar(1000)
+  type              TypeOfThought     @default(thoughts)
+  visibility        ThoughtVisibility @default(public)
+  comments          ThoughtComment[]
+  supportedThoughts ThoughtSupport[]
+  savedThoughts     SavedThought[]
+  reports           ThoughtReport[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([authorId, createdAt])
+  @@index([visibility, createdAt])
+}
+
+model ThoughtSupport {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  thoughtId String
+  thought   Thought  @relation(fields: [thoughtId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, thoughtId])
+  @@index([userId])
+  @@index([thoughtId])
+}
+
+model PostComment {
+  id        String   @id @default(cuid())
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  postId    String
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  text      String   @db.VarChar(500)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([authorId, createdAt])
+  @@index([postId, createdAt])
+}
+
+model ThoughtComment {
+  id        String   @id @default(cuid())
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  thoughtId String
+  thought   Thought  @relation(fields: [thoughtId], references: [id], onDelete: Cascade)
+  text      String   @db.VarChar(500)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([authorId, createdAt])
+  @@index([thoughtId, createdAt])
+}
+
+model SavedThought {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  thoughtId String
+  thought   Thought  @relation(fields: [thoughtId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, thoughtId])
+  @@index([userId])
+  @@index([thoughtId])
+}
+
 model RefreshToken {
   id        String    @id @default(cuid())
   tokenHash String    @unique @map("token_hash")
@@ -101,4 +256,19 @@ model RefreshToken {
 
   @@index([userId])
   @@map("refresh_tokens")
+}
+
+model ThoughtReport {
+  id         String   @id @default(cuid())
+  reporterId String
+  reporter   User     @relation(fields: [reporterId], references: [id], onDelete: Cascade)
+  thoughtId  String
+  thought    Thought  @relation(fields: [thoughtId], references: [id], onDelete: Cascade)
+  reason     String?  @db.VarChar(500)
+  createdAt  DateTime @default(now())
+
+  @@unique([reporterId, thoughtId])
+  @@index([thoughtId, createdAt])
+  @@index([reporterId, createdAt])
+  @@map("thought_reports")
 }
