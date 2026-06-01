@@ -30,7 +30,6 @@ enum PostVisibility {
 
 enum ThoughtVisibility {
   public
-  friends
   private
 }
 

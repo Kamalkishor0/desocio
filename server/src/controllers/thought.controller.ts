@@ -27,18 +27,6 @@ function parseTypeOfThought(value: unknown): TypeOfThought | undefined {
     return undefined;
 }
 
-async function areTheyFriends(userIdA: string, userIdB: string): Promise<boolean> {
-    const friendship = await prisma.friendship.findFirst({
-        where: {
-            OR: [
-                { userAId: userIdA, userBId: userIdB },
-                { userAId: userIdB, userBId: userIdA },
-            ],
-        },
-    });
-    return Boolean(friendship);
-}
-
 async function getVisibleThought(authId: string, thoughtId: string) {
     const thought = await prisma.thought.findUnique({
         where: { id: thoughtId },
@@ -51,10 +39,6 @@ async function getVisibleThought(authId: string, thoughtId: string) {
     }
     if (thought.visibility === ThoughtVisibility.public) {
         return thought;
-    }
-    if (thought.visibility === ThoughtVisibility.friends) {
-        const isFriends = await areTheyFriends(authId, thought.authorId);
-        return isFriends ? thought : null;
     }
     return null;
 }
@@ -117,10 +101,7 @@ export async function getAllThoughts(req: AuthenticatedRequest, res: Response) {
         return res.json(thoughts);
     }
 
-    const isFriends = await areTheyFriends(auth.id, userId);
-    const visibilityFilter = isFriends
-        ? { in: [ThoughtVisibility.public, ThoughtVisibility.friends] }
-        : ThoughtVisibility.public;
+    const visibilityFilter = ThoughtVisibility.public;
 
     const thoughts = await prisma.thought.findMany({
         where: {
