@@ -120,6 +120,17 @@ model Friendship {
   @@map("friendships")
 }
 
+model FriendshipInteraction {
+  userId   String
+  friendId String
+
+  score Int @default(0)
+
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, friendId])
+}
+
 model Post {
   id String @id @default(cuid())
 
