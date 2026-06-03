@@ -3,16 +3,26 @@ import { PostVisibility } from "@prisma/client";
 import prisma from "../config/db";
 import { AuthenticatedRequest } from "../types/auth";
 
-const FEED_HALF_LIFE_HOURS = 48;
-const MAX_FEED_CANDIDATES = 200;
-
 function getSingleString(value: unknown): string | undefined {
     return typeof value === "string" ? value : undefined;
 }
 
-function calculateRecencyDecay(createdAt: Date, now: Date): number {
-    const ageHours = (now.getTime() - createdAt.getTime()) / 36e5;
-    return Math.pow(0.5, ageHours / FEED_HALF_LIFE_HOURS);
+function parseCursor(value: string | undefined): { createdAt: Date; id: string } | undefined {
+    if (!value) {
+        return undefined;
+    }
+
+    const [createdAtRaw, id] = value.split("|");
+    if (!createdAtRaw || !id) {
+        return undefined;
+    }
+
+    const createdAt = new Date(createdAtRaw);
+    if (Number.isNaN(createdAt.getTime())) {
+        return undefined;
+    }
+
+    return { createdAt, id };
 }
 
 export async function getPrivateFeed(req: AuthenticatedRequest, res: Response) {
@@ -21,10 +31,9 @@ export async function getPrivateFeed(req: AuthenticatedRequest, res: Response) {
         return res.status(401).json({ message: "Unauthorized" });
     }
 
-    const { page, limit } = req.query as { page?: string; limit?: string };
-    const pageNumber = Math.max(1, Number.parseInt(page ?? "1", 10) || 1);
+    const { cursor, limit } = req.query as { cursor?: string; limit?: string };
+    const cursorValue = parseCursor(getSingleString(cursor));
     const limitNumber = Math.min(50, Math.max(1, Number.parseInt(limit ?? "20", 10) || 20));
-    const skip = (pageNumber - 1) * limitNumber;
 
     const friendships = await prisma.friendship.findMany({
         where: {
@@ -37,65 +46,50 @@ export async function getPrivateFeed(req: AuthenticatedRequest, res: Response) {
         friendship.userAId === auth.id ? friendship.userBId : friendship.userAId
     );
 
-    if (!friendIds.length) {
-        return res.json({
-            data: [],
-            page: pageNumber,
-            limit: limitNumber,
-            total: 0
-        });
-    }
+    const authorIds = Array.from(new Set([auth.id, ...friendIds]));
 
-    const [interactionScores, total] = await Promise.all([
-        prisma.friendshipInteraction.findMany({
+    const [posts, total] = await Promise.all([
+        prisma.post.findMany({
             where: {
-                userId: auth.id,
-                friendId: { in: friendIds }
+                authorId: { in: authorIds },
+                visibility: PostVisibility.friends,
+                ...(cursorValue
+                    ? {
+                          OR: [
+                              { createdAt: { lt: cursorValue.createdAt } },
+                              {
+                                  createdAt: cursorValue.createdAt,
+                                  id: { lt: cursorValue.id }
+                              }
+                          ]
+                      }
+                    : {})
             },
-            select: { friendId: true, score: true }
+            include: {
+                photos: true,
+                author: { select: { id: true, username: true, profilePictureUrl: true } }
+            },
+            orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+            take: limitNumber + 1
         }),
         prisma.post.count({
             where: {
-                authorId: { in: friendIds },
+                authorId: { in: authorIds },
                 visibility: PostVisibility.friends
             }
         })
     ]);
 
-    const scoreByFriendId = new Map(
-        interactionScores.map((interaction) => [interaction.friendId, interaction.score])
-    );
-
-    const candidateLimit = Math.min(MAX_FEED_CANDIDATES, limitNumber * 10);
-    const posts = await prisma.post.findMany({
-        where: {
-            authorId: { in: friendIds },
-            visibility: PostVisibility.friends
-        },
-        include: {
-            photos: true,
-            author: { select: { id: true, username: true, profilePictureUrl: true } }
-        },
-        orderBy: { createdAt: "desc" },
-        take: candidateLimit
-    });
-
-    const now = new Date();
-    const rankedPosts = posts
-        .map((post) => {
-            const interactionScore = scoreByFriendId.get(post.authorId) ?? 0;
-            const recencyDecay = calculateRecencyDecay(post.createdAt, now);
-            const feedScore = (interactionScore + 1) * recencyDecay;
-            return { post, feedScore };
-        })
-        .sort((a, b) => b.feedScore - a.feedScore)
-        .slice(skip, skip + limitNumber)
-        .map((entry) => entry.post);
+    const hasMore = posts.length > limitNumber;
+    const pagedPosts = hasMore ? posts.slice(0, limitNumber) : posts;
+    const nextCursor = hasMore
+        ? `${pagedPosts[pagedPosts.length - 1].createdAt.toISOString()}|${pagedPosts[pagedPosts.length - 1].id}`
+        : null;
 
     return res.json({
-        data: rankedPosts,
-        page: pageNumber,
+        data: pagedPosts,
         limit: limitNumber,
-        total
+        total,
+        nextCursor
     });
 }
