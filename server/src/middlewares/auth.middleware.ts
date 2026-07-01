@@ -1,6 +1,6 @@
 import type { NextFunction, Response } from "express";
 import type { AuthenticatedRequest } from "../types/auth.js";
-import { verifyAccessToken } from "../utils/jwt.js";
+import { verifyAccessToken } from "../utils/jwt";
 export function authMiddleware(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     const cookies = req.cookies[process.env.ACCESS_COOKIE_NAME || "access_token"];
     if (!cookies) {

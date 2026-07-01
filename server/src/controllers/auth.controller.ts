@@ -51,28 +51,27 @@ export async function setUsername(req: AuthenticatedRequest, res: Response) {
 }
 export async function Login(req: Request, res: Response) {
     // Implementation for login
-    const {username, email, password} = req.body as{
-        username: string;
-        email: string;
+    const {userOrEmail, password} = req.body as{
+        userOrEmail: string;
         password: string;
     }
     if(!password){
         return res.status(400).json({message: "Password is required"});
     }
-    if(!email && !username){
-        return res.status(400).json({message: "Email or username are required"});
+    if(!userOrEmail){
+        return res.status(400).json({message: "Email or username is required"});
     }
     let user = null;
-    if(email){
+    if(userOrEmail.includes("@")){
         user = await prisma.user.findUnique({
             where: {
-                email: normalizeEmail(email)
+                email: normalizeEmail(userOrEmail)
             }
         });
-    }else if(username){
+    }else{
         user = await prisma.user.findUnique({
             where: {
-                username: username
+                username: userOrEmail
             }
         });
     }
@@ -81,7 +80,7 @@ export async function Login(req: Request, res: Response) {
     }
     const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
     if(!isPasswordValid){
-        return res.status(400).json({message: "Invalid email or password"});
+        return res.status(400).json({message: "Invalid username, email or password"});
     }
     const { accessToken, refreshToken } = await issueTokens({
         id: user.id,
@@ -95,15 +94,34 @@ export async function Login(req: Request, res: Response) {
 
 export async function Register(req: Request, res: Response) {
 	// Implementation for register
-    const {email, password} = req.body as{
+    const {email, password, username, name} = req.body as{
         email: string;
         password: string;
+        name: string;
+        username: string;
     }
-    if(!email || !password){
-        return res.status(400).json({message: "Email and password are required"});
+    if(!email.trim() || !password.trim() || !username.trim() || !name.trim()){
+        return res.status(400).json({message: "Fill all the entries"});
     }
     if(password.length < 8){
         return res.status(400).json({message: "Password must be at least 8 characters long"});
+    }
+    if (!/[A-Z]/.test(password) || !/[a-z]/.test(password) || !/[0-9]/.test(password)) {
+        return res.status(400).json({message: "Password must contain at least one uppercase letter, one lowercase letter and one number"});
+    }
+    if(username.length < 3 || username.length > 32){
+        return res.status(400).json({message: "Username must be between 3 and 32 characters long"});
+    }
+    if(!/^[a-z0-9_]+$/.test(username)){
+        return res.status(400).json({message: "Username can only contain lowercase letters, numbers and underscores"});
+    }
+    const existingUsername = await prisma.user.findUnique({
+        where: {
+            username: username
+        }
+    });
+    if(existingUsername){
+        return res.status(400).json({message: "username already in use"});
     }
     const existingUser = await prisma.user.findUnique({
         where: {
