@@ -1,20 +1,52 @@
 import { request } from "./client";
+import type { AuthUser } from "../../types/auth";
 
-export type AuthUser = {
-  id: string;
-  username: string;
+const AUTH = {
+  LOGIN: "/auth/login",
+  REGISTER: "/auth/register",
+  ME: "/auth/me",
+  LOGOUT: "/auth/logout",
+} as const;
+
+export interface LoginRequest {
   userOrEmail: string;
+  password: string;
+}
+
+export interface LoginResponse {
+  message: string;
+  user: AuthUser;
+}
+
+export interface RegisterRequest {
   email: string;
-  createdAt?: string;
-  profilePictureUrl?: string | null;
-  bio?: string | null;
-};
+  password: string;
+  username: string;
+  name: string;
+}
+
+export interface RegisterResponse {
+  message: string;
+  user: AuthUser;
+}
 
 export const authApi = {
-  login: (body: { userOrEmail?: string; password: string }) =>
-    request<{ message: string }>("/auth/login", { method: "POST", body }),
-  register: (body: { email: string; password: string; username: string; name: string }) =>
-    request<{ message: string; newUser: AuthUser }>("/auth/register", { method: "POST", body }),
-  me: () => request<{ user: AuthUser }>("/auth/me"),
-  logout: () => request<{ message: string }>("/auth/logout", { method: "POST" }),
+  login(body: LoginRequest) {
+    return request<LoginResponse>(AUTH.LOGIN, {
+      method: "POST",
+      body,
+    });
+  },
+  register(body: RegisterRequest) {
+    return request<RegisterResponse>(AUTH.REGISTER, {
+      method: "POST",
+      body,
+    });
+  },
+  me() {
+    return request<{ user: AuthUser }>(AUTH.ME);
+  },
+  logout() {
+    return request<{ message: string }>(AUTH.LOGOUT, { method: "POST" });
+  },
 };

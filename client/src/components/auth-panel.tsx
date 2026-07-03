@@ -51,8 +51,13 @@ export function AuthPanel({ onAuthed }: Props) {
         await api.register({ email, password, username, name });
         setNotice("Account created. You can sign in now.");
         setMode("login");
+        setName("");
+        setEmail("");
+        setUsername("");
+        setPassword("");
+        setUserOrEmail("");
       } else {
-        await api.login({ userOrEmail: userOrEmail || undefined, password });
+        await api.login({ userOrEmail: userOrEmail || "", password });
         onAuthed();
       }
     } catch (error_) {
@@ -100,6 +105,7 @@ export function AuthPanel({ onAuthed }: Props) {
               <span>Username or email</span>
               <input
                 value={userOrEmail}
+                onFocus={() => setError(null)}
                 onChange={(event) => setUserOrEmail(event.target.value)}
                 type="text"
                 placeholder="username"
@@ -111,6 +117,7 @@ export function AuthPanel({ onAuthed }: Props) {
               <span>Password</span>
               <input
                 value={password}
+                onFocus={() => setError(null)}
                 onChange={(event) => setPassword(event.target.value)}
                 type="password"
                 placeholder="••••••••"
@@ -125,6 +132,7 @@ export function AuthPanel({ onAuthed }: Props) {
               <span>Email</span>
               <input
                 value={email}
+                onFocus={() => setError(null)}
                 onChange={(event) => setEmail(event.target.value)}
                 type="email"
                 placeholder="you@domain.com"
@@ -135,6 +143,7 @@ export function AuthPanel({ onAuthed }: Props) {
               <span>Password</span>
               <input
                 value={password}
+                onFocus={() => setError(null)}
                 onChange={(event) => setPassword(event.target.value)}
                 type="password"
                 placeholder="••••••••"
@@ -145,6 +154,7 @@ export function AuthPanel({ onAuthed }: Props) {
               <span>Name</span>
               <input
                 value={name}
+                onFocus={() => setError(null)}
                 onChange={(event) => setName(event.target.value)}
                 type="text"
                 placeholder="Your name"
@@ -155,6 +165,7 @@ export function AuthPanel({ onAuthed }: Props) {
               <span>Username</span>
               <input
                 value={username}
+                onFocus={() => setError(null)}
                 onChange={(event) => setUsername(event.target.value)}
                 type="text"
                 placeholder="username"

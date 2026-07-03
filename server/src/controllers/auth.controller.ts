@@ -12,7 +12,7 @@ import {
     setAccessCookie,
     setRefreshCookie
 } from "../utils/authTokens";
-import { normalizeEmail, tempUserName } from "../utils/auth";
+import { normalizeEmail } from "../utils/auth";
 import { AuthenticatedRequest } from "../types/auth";
 
 export async function setUsername(req: AuthenticatedRequest, res: Response) {
@@ -136,7 +136,8 @@ export async function Register(req: Request, res: Response) {
         data: {
             email: normalizeEmail(email),
             passwordHash: passwordHash,
-            username: tempUserName(email)
+            username: username,
+            name: name
         },
         select:{
             id: true,

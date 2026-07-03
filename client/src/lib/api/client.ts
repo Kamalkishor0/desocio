@@ -1,3 +1,15 @@
+export class ApiResponseError extends Error {
+  status: number;
+  data: ApiError;
+
+  constructor(status: number, data: ApiError, message?: string) {
+    super(message || data.message || "API request failed");
+    this.name = "ApiResponseError";
+    this.status = status;
+    this.data = data;
+  }
+}
+
 export type ApiError = {
   message: string;
 };
@@ -22,7 +34,7 @@ export async function request<T>(path: string, options: RequestOptions = {}): Pr
   const payload = (await response.json().catch(() => ({}))) as T & ApiError;
 
   if (!response.ok) {
-    throw new Error(payload.message || "Request failed");
+    throw new ApiResponseError(response.status, payload);
   }
 
   return payload as T;
