@@ -2,7 +2,7 @@ import crypto from "crypto";
 import jwt, { type JwtPayload as JsonWebTokenPayload, type SignOptions } from "jsonwebtoken";
 import { JwtPayload, RefreshJwtPayload } from "../types/auth";
 
-const ACCESS_EXPIRES_IN = (process.env.JWT_ACCESS_EXPIRES_IN || "15m") as SignOptions["expiresIn"];
+const ACCESS_EXPIRES_IN = (process.env.JWT_ACCESS_EXPIRES_IN || "1d") as SignOptions["expiresIn"];
 const REFRESH_EXPIRES_IN = (process.env.JWT_REFRESH_EXPIRES_IN || "30d") as SignOptions["expiresIn"];
 
 function getAccessSecret(): string {

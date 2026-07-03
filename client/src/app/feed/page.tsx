@@ -1,9 +1,11 @@
 "use client";
 
 import { FeedBoard } from "@/components/feed-board";
-import { api, AuthUser } from "@/lib/api";
+import { api } from "@/lib/api";
+import { AuthUser } from "@/types/auth";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { Sidebar } from "@/components/sidebar/sidebar";
 
 export default function FeedPage() {
   const router = useRouter();
@@ -11,7 +13,7 @@ export default function FeedPage() {
   const [booting, setBooting] = useState(true);
   const [refreshKey, setRefreshKey] = useState(0);
   const [loggingOut, setLoggingOut] = useState(false);
-
+  const [expanded, setExpanded] = useState(false);
   useEffect(() => {
     let active = true;
 
@@ -61,35 +63,24 @@ export default function FeedPage() {
   }
 
   return (
-    <main className="min-h-screen bg-slate-950 px-6 py-10 text-white">
-      <div className="mx-auto max-w-5xl space-y-6">
-        <header className="flex flex-wrap items-center justify-between gap-4 rounded-3xl border border-white/10 bg-white/5 p-5">
-          <div>
-            <p className="text-xs uppercase tracking-[0.3em] text-emerald-200/70">DeSocio</p>
-            <h1 className="heading-font mt-2 text-2xl font-semibold text-white">Welcome, @{user?.username}</h1>
-          </div>
+  <main className="mx-auto max-w-5xl min-h-screen py-2 md:py-8">
+    <div className="grid grid-cols-[4rem_1fr] md:grid-cols-[clamp(5rem,18vw,16rem)_1fr]">
+      <aside
+        onMouseEnter={() => setExpanded(true)}
+        onMouseLeave={() => setExpanded(false)}
+        className="sticky top-2 md:top-8 flex h-[calc(100vh-1rem)] md:h-[calc(100vh-4rem)] w-full flex-col bg-gray-800"
+      >
+        <h1 className="heading-font mb-6 hidden px-4 text-3xl font-extrabold tracking-tight text-white md:block">
+          DeSocio
+        </h1>
 
-          <div className="flex items-center gap-3">
-            <button
-              type="button"
-              onClick={() => setRefreshKey((current) => current + 1)}
-              className="rounded-2xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-white transition hover:border-emerald-400/40 hover:bg-emerald-400/10"
-            >
-              Refresh
-            </button>
-            <button
-              type="button"
-              onClick={onLogout}
-              disabled={loggingOut}
-              className="rounded-2xl border border-rose-400/40 bg-rose-500/10 px-4 py-2 text-sm font-semibold text-rose-100 transition hover:bg-rose-500/20 disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {loggingOut ? "Signing out..." : "Sign out"}
-            </button>
-          </div>
-        </header>
+        <Sidebar expanded={expanded} />
+      </aside>
 
-        <FeedBoard refreshKey={refreshKey} />
-      </div>
-    </main>
-  );
+      <section className="h-full bg-red-900">
+        <FeedBoard />
+      </section>
+    </div>
+  </main>
+);
 }
