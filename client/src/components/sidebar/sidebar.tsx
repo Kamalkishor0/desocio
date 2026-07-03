@@ -1,73 +1,110 @@
+"use client";
+
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+
+import { api } from "@/lib/api";
 import {
-  Home,
-  MessageCircle,
-  Bell,
-  User,
-  Settings,
-  LogOut,
-  SquarePen,
-} from "lucide-react";
+  SidebarItem,
+  topSidebarItems,
+  bottomSidebarItems,
+} from "./sidebarItems";
 
 type SidebarProps = {
   expanded: boolean;
 };
 
 export function Sidebar({ expanded }: SidebarProps) {
-  const topItems = [
-    { icon: Home, label: "Home" },
-    { icon: MessageCircle, label: "Messages" },
-    { icon: Bell, label: "Notifications" },
-    { icon: User, label: "Profile" },
-    { icon: SquarePen, label: "Post" },
-  ];
+  const router = useRouter();
+  const [loggingOut, setLoggingOut] = useState(false);
 
-  const bottomItems = [
-    { icon: Settings, label: "Settings" },
-    { icon: LogOut, label: "Logout" }
-  ];
+  const handleItemClick = async (id: SidebarItem["id"]) => {
+    switch (id) {
+      case "home":
+        router.push("/feed");
+        break;
+
+      case "messages":
+        break;
+
+      case "notifications":
+        break;
+
+      case "profile":
+        break;
+
+      case "post":
+        break;
+
+      case "settings":
+        break;
+
+      case "logout":
+        setLoggingOut(true);
+
+        try {
+          await api.logout();
+        } finally {
+          router.replace("/");
+          setLoggingOut(false);
+        }
+        break;
+    }
+  };
 
   return (
     <nav className="flex h-full flex-col justify-between pb-6">
       <div className="space-y-2">
-        {topItems.map(({ icon: Icon, label }) => (
+        {topSidebarItems.map(({ id, icon: Icon, label }) => (
           <button
-            key={label}
-            className={`flex items-center gap-4 rounded-xl p-3 transition ${expanded ? "w-full" : "w-fit"
-              } hover:bg-white/10`}
+            key={id}
+            type="button"
+            onClick={() => handleItemClick(id)}
+            className={`flex items-center gap-4 rounded-xl p-3 transition ${
+              expanded ? "w-full" : "w-fit"
+            } hover:bg-white/10`}
           >
             <Icon size={22} />
 
             <span
-              className={`overflow-hidden whitespace-nowrap font-medium transition-all duration-300 ease-in-out ${expanded
+              className={`overflow-hidden whitespace-nowrap font-medium transition-all duration-300 ease-in-out ${
+                expanded
                   ? "ml-2 max-w-[120px] opacity-100"
                   : "ml-0 max-w-0 opacity-0"
-                }`}
+              }`}
             >
-              {label==="Post" ? "Create" : label}
+              {label === "Post" ? "Create" : label}
             </span>
           </button>
         ))}
       </div>
 
       <div className="space-y-2">
-        {bottomItems.map(({ icon: Icon, label }) => {
-          const isLogout = label === "Logout";
+        {bottomSidebarItems.map(({ id, icon: Icon, label }) => {
+          const isLogout = id === "logout";
 
           return (
             <button
-              key={label}
-              className={`flex items-center gap-4 rounded-xl p-3 transition ${expanded ? "w-full" : "w-fit"
-                } ${isLogout
+              key={id}
+              type="button"
+              onClick={() => handleItemClick(id)}
+              disabled={isLogout && loggingOut}
+              className={`flex items-center gap-4 rounded-xl p-3 transition ${
+                expanded ? "w-full" : "w-fit"
+              } ${
+                isLogout
                   ? "text-red-400 hover:bg-red-500/10 hover:text-red-300"
                   : "hover:bg-white/10"
-                }`}
+              }`}
             >
               <Icon size={22} />
+
               <span
-                className={`overflow-hidden whitespace-nowrap font-medium transition-all duration-300 ease-in-out ${expanded
-                  ? "ml-2 max-w-[120px] opacity-100"
-                  : "ml-0 max-w-0 opacity-0"
-                  }`}
+                className={`overflow-hidden whitespace-nowrap font-medium transition-all duration-300 ease-in-out ${
+                  expanded
+                    ? "ml-2 max-w-[120px] opacity-100"
+                    : "ml-0 max-w-0 opacity-0"
+                }`}
               >
                 {label}
               </span>
