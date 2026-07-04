@@ -17,7 +17,7 @@ export default function Page() {
 			</section>
 
 			<section className="flex-1 md:w-1/2 flex items-center justify-center bg-zinc-100 p-8">
-				<AuthPanel onAuthed={() => router.push("/feed")} />
+				<AuthPanel onAuthed={() => router.push("/home")} />
 			</section>
 		</main>
 	);

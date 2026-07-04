@@ -21,7 +21,7 @@ export function Sidebar({ expanded }: SidebarProps) {
   const handleItemClick = async (id: SidebarItem["id"]) => {
     switch (id) {
       case "home":
-        router.push("/feed");
+        router.push("/home");
         break;
 
       case "messages":
@@ -31,6 +31,7 @@ export function Sidebar({ expanded }: SidebarProps) {
         break;
 
       case "profile":
+        router.push("/home/profile");
         break;
 
       case "post":
