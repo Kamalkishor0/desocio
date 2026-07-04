@@ -18,18 +18,64 @@ export type RequestOptions = Omit<RequestInit, "body"> & {
   body?: unknown;
 };
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
 
-export async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
-  const response = await fetch(`${API_BASE_URL}${path}`, {
+let refreshPromise: Promise<void> | null = null;
+
+async function refreshAccessToken() {
+  if (!refreshPromise) {
+    refreshPromise = fetch(`${API_BASE_URL}/auth/refresh`, {
+      method: "POST",
+      credentials: "include",
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Refresh failed");
+        }
+      })
+      .finally(() => {
+        refreshPromise = null;
+      });
+  }
+
+  return refreshPromise;
+}
+
+async function performRequest(
+  path: string,
+  options: RequestOptions
+): Promise<Response> {
+  return fetch(`${API_BASE_URL}${path}`, {
     credentials: "include",
     headers: {
       "Content-Type": "application/json",
-      ...(options.headers ?? {})
+      ...(options.headers ?? {}),
     },
     ...options,
-    body: options.body === undefined ? undefined : JSON.stringify(options.body)
+    body:
+      options.body === undefined
+        ? undefined
+        : JSON.stringify(options.body),
   });
+}
+
+export async function request<T>(
+  path: string,
+  options: RequestOptions = {}
+): Promise<T> {
+  let response = await performRequest(path, options);
+
+  if (response.status === 401 && path !== "/auth/refresh") {
+    try {
+      await refreshAccessToken();
+      response = await performRequest(path, options);
+    } catch {
+      throw new ApiResponseError(401, {
+        message: "Authentication expired. Please log in again.",
+      });
+    }
+  }
 
   const payload = (await response.json().catch(() => ({}))) as T & ApiError;
 
