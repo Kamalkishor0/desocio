@@ -35,6 +35,7 @@ export function Sidebar({ expanded }: SidebarProps) {
         break;
 
       case "post":
+        router.push("/home/createpost");
         break;
 
       case "settings":

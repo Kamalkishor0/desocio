@@ -14,8 +14,10 @@ export type ApiError = {
   message: string;
 };
 
+export type RequestBody = FormData | BodyInit | Record<string, unknown>;
+
 export type RequestOptions = Omit<RequestInit, "body"> & {
-  body?: unknown;
+  body?: RequestBody;
 };
 
 const API_BASE_URL =
@@ -46,17 +48,26 @@ async function performRequest(
   path: string,
   options: RequestOptions
 ): Promise<Response> {
+  console.log("performRequest");
+  const body = options.body;
+  const isFormData = body instanceof FormData;
+
+  const headers = new Headers(options.headers);
+
+  if (!isFormData && body !== undefined) {
+    headers.set("Content-Type", "application/json");
+  }
+
   return fetch(`${API_BASE_URL}${path}`, {
     credentials: "include",
-    headers: {
-      "Content-Type": "application/json",
-      ...(options.headers ?? {}),
-    },
     ...options,
+    headers,
     body:
-      options.body === undefined
+      body === undefined
         ? undefined
-        : JSON.stringify(options.body),
+        : isFormData
+          ? body
+          : JSON.stringify(body),
   });
 }
 
@@ -64,6 +75,7 @@ export async function request<T>(
   path: string,
   options: RequestOptions = {}
 ): Promise<T> {
+  console.log("request called ", path, options);
   let response = await performRequest(path, options);
 
   if (response.status === 401 && path !== "/auth/refresh") {

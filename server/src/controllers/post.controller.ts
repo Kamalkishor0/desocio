@@ -30,6 +30,7 @@ async function areTheyFriends(userIdA: string, userIdB: string): Promise<boolean
 }
 
 export async function createPost(req:AuthenticatedRequest, res: Response) {
+    
     const auth = req.auth;
     if (!auth) {
         return res.status(401).json({ message: "Unauthorized" });

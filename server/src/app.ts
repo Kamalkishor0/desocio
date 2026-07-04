@@ -3,7 +3,11 @@ import path from "path";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import authRouter from "./routes/auth.routes";
-import feedRouter from "./routes/feed";
+import feedRouter from "./routes/feed.routes";
+import postRouter from "./routes/post.routes";
+import friendsRouter from "./routes/friends.routes";
+import thoughtsRouter from "./routes/thought.routes";
+import { authMiddleware } from "./middlewares/auth.middleware";
 const app = express();
 
 app.use(cors({ origin: true, credentials: true }));
@@ -15,5 +19,9 @@ app.get("/", (_req, res) => {
 	res.json({ message: "Server is running" });
 });
 app.use("/auth",authRouter);
-app.use("/feed", feedRouter);
+app.use("/feed", authMiddleware, feedRouter);
+app.use("/posts", authMiddleware, postRouter);
+app.use("/friends", authMiddleware, friendsRouter);
+app.use("/thoughts", authMiddleware, thoughtsRouter);
+
 export default app;
