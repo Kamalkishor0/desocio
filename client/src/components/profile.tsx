@@ -87,7 +87,7 @@ export function Profile() {
 
   return (
     <div className="mx-auto w-full max-w-2xl space-y-6 p-6">
-      <section className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
+      <section className="glass rounded-3xl bg-slate-900/60 p-6 shadow-2xl shadow-slate-950/40 md:p-8">
         <div className="flex items-center gap-5">
           {avatarUrl ? (
             <img
@@ -138,7 +138,7 @@ export function Profile() {
         ) : null}
       </section>
 
-      <section className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
+      <section className="glass rounded-3xl bg-slate-900/60 p-6 shadow-2xl shadow-slate-950/40 md:p-8">
         <div className="mb-4 inline-flex rounded-xl border border-slate-800 bg-slate-950 p-1">
           <button
             type="button"
