@@ -119,7 +119,11 @@ export function PostModal({ post, author, onClose }: PostModalProps) {
     commentInputRef.current?.focus();
   }
 
-  function renderComment(comment: PostComment, isReply: boolean) {
+  function renderComment(
+    comment: PostComment,
+    isReply: boolean,
+    replyingTo?: string
+  ) {
     const commentAvatar = resolveMediaUrl(comment.author.profilePictureUrl);
     return (
       <li key={comment.id} className={isReply ? "ml-10" : undefined}>
@@ -140,6 +144,11 @@ export function PostModal({ post, author, onClose }: PostModalProps) {
               <span className="font-semibold text-white">
                 @{comment.author.username}
               </span>{" "}
+              {replyingTo ? (
+                <span className="font-medium text-blue-400">
+                  @{replyingTo}
+                </span>
+              ) : null}{" "}
               <span className="whitespace-pre-wrap">{comment.text}</span>
             </p>
             <div className="mt-1 flex items-center gap-3 text-xs text-slate-500">
@@ -156,7 +165,9 @@ export function PostModal({ post, author, onClose }: PostModalProps) {
         </div>
         {comment.replies && comment.replies.length > 0 ? (
           <ul className="mt-3 space-y-3">
-            {comment.replies.map((reply) => renderComment(reply, true))}
+            {comment.replies.map((reply) =>
+              renderComment(reply, true, comment.author.username)
+            )}
           </ul>
         ) : null}
       </li>
