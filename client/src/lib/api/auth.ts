@@ -8,22 +8,22 @@ const AUTH = {
   LOGOUT: "/auth/logout",
 } as const;
 
-export interface LoginRequest {
+export type LoginRequest = {
   userOrEmail: string;
   password: string;
-}
+};
 
 export interface LoginResponse {
   message: string;
   user: AuthUser;
 }
 
-export interface RegisterRequest {
+export type RegisterRequest = {
   email: string;
   password: string;
   username: string;
   name: string;
-}
+};
 
 export interface RegisterResponse {
   message: string;

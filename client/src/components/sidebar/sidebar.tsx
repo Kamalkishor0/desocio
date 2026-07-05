@@ -34,6 +34,10 @@ export function Sidebar({ expanded }: SidebarProps) {
         router.push("/home/profile");
         break;
 
+      case "friends":
+        router.push("/home/friends");
+        break;
+
       case "post":
         router.push("/home/createpost");
         break;

@@ -3,6 +3,7 @@ import {
   MessageCircle,
   Bell,
   User,
+  Users,
   Settings,
   LogOut,
   SquarePen,
@@ -14,6 +15,7 @@ export type SidebarItem = {
     | "messages"
     | "notifications"
     | "profile"
+    | "friends"
     | "post"
     | "settings"
     | "logout";
@@ -41,6 +43,11 @@ export const topSidebarItems: SidebarItem[] = [
     id: "profile",
     icon: User,
     label: "Profile",
+  },
+  {
+    id: "friends",
+    icon: Users,
+    label: "Friends",
   },
   {
     id: "post",

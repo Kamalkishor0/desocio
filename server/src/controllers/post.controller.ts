@@ -183,10 +183,11 @@ export async function commentOnPost(req: AuthenticatedRequest, res: Response) {
     if (!postId) {
         return res.status(400).json({ message: "Invalid post id" });
     }
-    const { text } = req.body as { text?: string };
+    const { text, parentId: parentIdRaw } = req.body as { text?: string; parentId?: string };
     if (!text) {
         return res.status(400).json({ message: "Comment text is required" });
     }
+    const parentIdInput = getSingleString(parentIdRaw);
 
     const post = await prisma.post.findUnique({
         where: { id: postId },
@@ -201,11 +202,29 @@ export async function commentOnPost(req: AuthenticatedRequest, res: Response) {
         }
     }
 
+    let parentId: string | null = null;
+    if (parentIdInput) {
+        const parent = await prisma.postComment.findUnique({
+            where: { id: parentIdInput },
+            select: { id: true, postId: true, parentId: true },
+        });
+        if (!parent || parent.postId !== postId) {
+            return res.status(404).json({ message: "Parent comment not found" });
+        }
+        parentId = parent.parentId ?? parent.id;
+    }
+
     const comment = await prisma.postComment.create({
         data: {
             postId,
             authorId: auth.id,
             text,
+            parentId,
+        },
+        include: {
+            author: {
+                select: { id: true, username: true, profilePictureUrl: true },
+            },
         },
     });
     res.status(201).json(comment);
@@ -234,9 +253,19 @@ export async function getCommentsForPost(req: AuthenticatedRequest, res: Respons
         }
     }
 
+    const authorSelect = {
+        select: { id: true, username: true, profilePictureUrl: true },
+    };
     const comments = await prisma.postComment.findMany({
-        where: { postId },
+        where: { postId, parentId: null },
         orderBy: { createdAt: "asc" },
+        include: {
+            author: authorSelect,
+            replies: {
+                orderBy: { createdAt: "asc" },
+                include: { author: authorSelect },
+            },
+        },
     });
     res.json(comments);
 }
