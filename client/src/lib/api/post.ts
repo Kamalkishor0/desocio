@@ -1,13 +1,22 @@
 import { request } from "./client";
 import type { PostReactionType } from "@/types/post";
 
+export type PostCommentAuthor = {
+  id: string;
+  username: string;
+  profilePictureUrl: string | null;
+};
+
 export type PostComment = {
   id: string;
   postId: string;
   authorId: string;
+  parentId: string | null;
   text: string;
   createdAt: string;
   updatedAt: string;
+  author: PostCommentAuthor;
+  replies?: PostComment[];
 };
 
 export type PostReactionState = {
@@ -85,10 +94,10 @@ export const postApi = {
     return request<PostReactionState>(POSTS.REACTIONS(postId));
   },
 
-  async comment(postId: string, text: string) {
+  async comment(postId: string, text: string, parentId?: string) {
     return request<PostComment>(POSTS.COMMENT(postId), {
       method: "POST",
-      body: { text },
+      body: parentId ? { text, parentId } : { text },
     });
   },
 

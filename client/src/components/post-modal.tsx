@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Hand, Heart, Laugh, Send, X } from "lucide-react";
 import { postApi } from "@/lib/api/post";
 import type { FeedPost } from "@/lib/api/feed";
@@ -35,6 +35,10 @@ export function PostModal({ post, author, onClose }: PostModalProps) {
   const [comments, setComments] = useState<PostComment[]>([]);
   const [commentText, setCommentText] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [replyTo, setReplyTo] = useState<{ id: string; username: string } | null>(
+    null
+  );
+  const commentInputRef = useRef<HTMLInputElement>(null);
 
   const photos = post.photos
     ? post.photos.slice().sort((a, b) => a.position - b.position)
@@ -98,15 +102,65 @@ export function PostModal({ post, author, onClose }: PostModalProps) {
     }
     try {
       setSubmitting(true);
-      await postApi.comment(post.id, text);
+      await postApi.comment(post.id, text, replyTo?.id);
       const list = await postApi.getComments(post.id);
       setComments(list);
       setCommentText("");
+      setReplyTo(null);
     } catch (error) {
       console.error("Failed to add comment:", error);
     } finally {
       setSubmitting(false);
     }
+  }
+
+  function startReply(comment: PostComment) {
+    setReplyTo({ id: comment.id, username: comment.author.username });
+    commentInputRef.current?.focus();
+  }
+
+  function renderComment(comment: PostComment, isReply: boolean) {
+    const commentAvatar = resolveMediaUrl(comment.author.profilePictureUrl);
+    return (
+      <li key={comment.id} className={isReply ? "ml-10" : undefined}>
+        <div className="flex gap-3">
+          {commentAvatar ? (
+            <img
+              src={commentAvatar}
+              alt={comment.author.username}
+              className="h-7 w-7 shrink-0 rounded-full border border-slate-700 object-cover"
+            />
+          ) : (
+            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-slate-700 bg-slate-800 text-xs font-semibold text-white">
+              {comment.author.username.charAt(0).toUpperCase()}
+            </div>
+          )}
+          <div className="min-w-0 flex-1">
+            <p className="text-sm text-slate-200">
+              <span className="font-semibold text-white">
+                @{comment.author.username}
+              </span>{" "}
+              <span className="whitespace-pre-wrap">{comment.text}</span>
+            </p>
+            <div className="mt-1 flex items-center gap-3 text-xs text-slate-500">
+              <span>{formatDate(comment.createdAt)}</span>
+              <button
+                type="button"
+                onClick={() => startReply(comment)}
+                className="font-medium text-slate-400 transition hover:text-white"
+              >
+                Reply
+              </button>
+            </div>
+          </div>
+        </div>
+        {comment.replies && comment.replies.length > 0 ? (
+          <ul className="mt-3 space-y-3">
+            {comment.replies.map((reply) => renderComment(reply, true))}
+          </ul>
+        ) : null}
+      </li>
+    );
   }
 
   return (
@@ -115,7 +169,7 @@ export function PostModal({ post, author, onClose }: PostModalProps) {
       onClick={onClose}
     >
       <div
-        className="flex max-h-[90vh] w-full max-w-4xl flex-col overflow-hidden rounded-2xl border border-slate-800 bg-slate-900 md:flex-row"
+        className="flex h-[85vh] max-h-[90vh] w-full max-w-4xl flex-col overflow-hidden rounded-2xl border border-slate-800 bg-slate-900 md:flex-row"
         onClick={(event) => event.stopPropagation()}
       >
         <div className="flex items-center justify-center bg-slate-950 md:w-1/2">
@@ -163,25 +217,34 @@ export function PostModal({ post, author, onClose }: PostModalProps) {
             </button>
           </div>
 
-          <div className="min-h-0 flex-1 overflow-y-auto p-4">
+          <div className="min-h-0 flex-1 space-y-4 overflow-y-auto p-4">
             {photos.length > 0 && post.text ? (
-              <p className="mb-4 whitespace-pre-wrap text-slate-200">
-                {post.text}
-              </p>
+              <div className="flex gap-3 border-b border-slate-800 pb-4">
+                {avatarUrl ? (
+                  <img
+                    src={avatarUrl}
+                    alt={author.username}
+                    className="h-7 w-7 shrink-0 rounded-full border border-slate-700 object-cover"
+                  />
+                ) : (
+                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-slate-700 bg-slate-800 text-xs font-semibold text-white">
+                    {author.username.charAt(0).toUpperCase()}
+                  </div>
+                )}
+                <p className="text-sm text-slate-200">
+                  <span className="font-semibold text-white">
+                    @{author.username}
+                  </span>{" "}
+                  <span className="whitespace-pre-wrap">{post.text}</span>
+                </p>
+              </div>
             ) : null}
 
             {comments.length === 0 ? (
               <p className="text-sm text-slate-500">No comments yet.</p>
             ) : (
-              <ul className="space-y-3">
-                {comments.map((comment) => (
-                  <li key={comment.id} className="text-sm text-slate-200">
-                    <p className="whitespace-pre-wrap">{comment.text}</p>
-                    <span className="text-xs text-slate-500">
-                      {formatDate(comment.createdAt)}
-                    </span>
-                  </li>
-                ))}
+              <ul className="space-y-4">
+                {comments.map((comment) => renderComment(comment, false))}
               </ul>
             )}
           </div>
@@ -213,12 +276,34 @@ export function PostModal({ post, author, onClose }: PostModalProps) {
               {formatDate(post.createdAt)}
             </p>
 
+            {replyTo ? (
+              <div className="mt-3 flex items-center justify-between rounded-lg bg-slate-800 px-3 py-1.5 text-xs text-slate-300">
+                <span>
+                  Replying to{" "}
+                  <span className="font-medium text-white">
+                    @{replyTo.username}
+                  </span>
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setReplyTo(null)}
+                  aria-label="Cancel reply"
+                  className="text-slate-400 transition hover:text-white"
+                >
+                  <X size={14} />
+                </button>
+              </div>
+            ) : null}
+
             <form onSubmit={submitComment} className="mt-3 flex items-center gap-2">
               <input
+                ref={commentInputRef}
                 type="text"
                 value={commentText}
                 onChange={(event) => setCommentText(event.target.value)}
-                placeholder="Add a comment..."
+                placeholder={
+                  replyTo ? `Reply to @${replyTo.username}...` : "Add a comment..."
+                }
                 className="flex-1 rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white placeholder:text-slate-500 outline-none focus:border-blue-500"
               />
               <button

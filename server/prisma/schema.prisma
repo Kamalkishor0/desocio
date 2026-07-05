@@ -227,12 +227,16 @@ model PostComment {
   author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
   postId    String
   post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  parentId  String?
+  parent    PostComment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies   PostComment[] @relation("CommentReplies")
   text      String   @db.VarChar(500)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([authorId, createdAt])
   @@index([postId, createdAt])
+  @@index([parentId, createdAt])
 }
 
 model ThoughtComment {
