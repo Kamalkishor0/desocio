@@ -205,17 +205,14 @@ export function PostModal({ post, author, onClose }: PostModalProps) {
                   {author.username.charAt(0).toUpperCase()}
                 </div>
               )}
-              <p className="min-w-0 text-sm text-slate-200">
-                <span className="font-semibold text-white">
-                  @{author.username}
-                </span>
+              <div className="min-w-0 text-sm text-slate-200">
+                <p className="font-semibold text-white">@{author.username}</p>
                 {photos.length > 0 && post.text ? (
-                  <>
-                    {" "}
-                    <span className="whitespace-pre-wrap">{post.text}</span>
-                  </>
+                  <p className="mt-0.5 whitespace-pre-wrap text-slate-200">
+                    {post.text}
+                  </p>
                 ) : null}
-              </p>
+              </div>
             </div>
             <button
               type="button"
