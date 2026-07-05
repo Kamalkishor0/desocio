@@ -18,11 +18,27 @@ export type Thought = {
   updatedAt: string;
 };
 
+export interface CreateThoughtRequest {
+  text: string;
+  type?: ThoughtType;
+  visibility?: ThoughtVisibility;
+}
+
 export const thoughtApi = {
   list: (userId?: string) => {
     const url = userId
       ? `/thoughts?userId=${encodeURIComponent(userId)}`
       : "/thoughts";
     return request<Thought[]>(url);
-  }
+  },
+
+  create: (data: CreateThoughtRequest) =>
+    request<Thought>("/thoughts", {
+      method: "POST",
+      body: {
+        text: data.text,
+        type: data.type,
+        visibility: data.visibility,
+      },
+    }),
 };

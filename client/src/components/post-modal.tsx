@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Hand, Heart, Laugh, Send, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Hand, Heart, Laugh, Send, X } from "lucide-react";
 import { postApi } from "@/lib/api/post";
 import type { FeedPost } from "@/lib/api/feed";
 import type { PostComment } from "@/lib/api/post";
@@ -39,11 +39,28 @@ export function PostModal({ post, author, onClose }: PostModalProps) {
     null
   );
   const commentInputRef = useRef<HTMLInputElement>(null);
+  const [photoIndex, setPhotoIndex] = useState(0);
 
   const photos = post.photos
     ? post.photos.slice().sort((a, b) => a.position - b.position)
     : [];
   const avatarUrl = resolveMediaUrl(author.profilePictureUrl);
+
+  useEffect(() => {
+    setPhotoIndex(0);
+  }, [post.id]);
+
+  function showPrevPhoto() {
+    setPhotoIndex((current) =>
+      current === 0 ? photos.length - 1 : current - 1
+    );
+  }
+
+  function showNextPhoto() {
+    setPhotoIndex((current) =>
+      current === photos.length - 1 ? 0 : current + 1
+    );
+  }
 
   useEffect(() => {
     let active = true;
@@ -183,17 +200,56 @@ export function PostModal({ post, author, onClose }: PostModalProps) {
         className="flex h-[85vh] max-h-[90vh] w-full max-w-4xl flex-col overflow-hidden rounded-2xl border border-slate-800 bg-slate-900 md:flex-row"
         onClick={(event) => event.stopPropagation()}
       >
-        <div className="flex items-center justify-center bg-slate-950 md:w-1/2">
+        <div className="relative flex items-center justify-center bg-slate-950 md:w-1/2">
           {photos.length > 0 ? (
-            <div className="slim-scrollbar max-h-[45vh] w-full overflow-y-auto md:max-h-[90vh]">
-              {photos.map((photo) => (
-                <img
-                  key={photo.id}
-                  src={resolveMediaUrl(photo.url) ?? undefined}
-                  alt=""
-                  className="w-full object-contain"
-                />
-              ))}
+            <div className="flex h-full max-h-[45vh] w-full items-center justify-center md:max-h-[90vh]">
+              <img
+                key={photos[photoIndex].id}
+                src={resolveMediaUrl(photos[photoIndex].url) ?? undefined}
+                alt=""
+                className="max-h-[45vh] w-full object-contain md:max-h-[90vh]"
+              />
+
+              {photos.length > 1 ? (
+                <>
+                  <button
+                    type="button"
+                    onClick={showPrevPhoto}
+                    aria-label="Previous photo"
+                    className="absolute left-3 top-1/2 -translate-y-1/2 rounded-full bg-black/60 p-2 text-white transition hover:bg-black/80"
+                  >
+                    <ChevronLeft size={20} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={showNextPhoto}
+                    aria-label="Next photo"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full bg-black/60 p-2 text-white transition hover:bg-black/80"
+                  >
+                    <ChevronRight size={20} />
+                  </button>
+
+                  <div className="absolute bottom-3 left-1/2 -translate-x-1/2 rounded-full bg-black/60 px-2.5 py-1 text-xs font-medium text-white">
+                    {photoIndex + 1}/{photos.length}
+                  </div>
+
+                  <div className="absolute bottom-3 right-3 flex gap-1.5">
+                    {photos.map((photo, index) => (
+                      <button
+                        key={photo.id}
+                        type="button"
+                        onClick={() => setPhotoIndex(index)}
+                        aria-label={`Go to photo ${index + 1}`}
+                        className={`h-1.5 rounded-full transition-all ${
+                          index === photoIndex
+                            ? "w-4 bg-white"
+                            : "w-1.5 bg-white/50 hover:bg-white/80"
+                        }`}
+                      />
+                    ))}
+                  </div>
+                </>
+              ) : null}
             </div>
           ) : (
             <div className="flex min-h-[200px] w-full items-center justify-center p-8 text-center text-lg text-slate-200">
