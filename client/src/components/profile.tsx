@@ -8,7 +8,6 @@ import { friendsApi } from "@/lib/api/friends";
 import type { AuthUser } from "@/types/auth";
 import type { FeedPost } from "@/lib/api/feed";
 import type { Thought } from "@/lib/api/thought";
-import type { Friend } from "@/lib/api/friends";
 import { formatDate, resolveMediaUrl } from "@/lib/media";
 import { PostModal } from "@/components/post-modal";
 
@@ -21,7 +20,6 @@ export function Profile() {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [posts, setPosts] = useState<FeedPost[]>([]);
   const [thoughts, setThoughts] = useState<Thought[]>([]);
-  const [friends, setFriends] = useState<Friend[]>([]);
   const [friendsCount, setFriendsCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -48,7 +46,6 @@ export function Profile() {
         setUser(meResult.user);
         setPosts(Array.isArray(postsResult) ? postsResult : []);
         setThoughts(Array.isArray(thoughtsResult) ? thoughtsResult : []);
-        setFriends(friendsResult.data ?? []);
         setFriendsCount(friendsResult.total ?? friendsResult.data?.length ?? 0);
       } catch (err) {
         if (!active) {
@@ -228,40 +225,6 @@ export function Profile() {
                 </div>
               </article>
             ))}
-          </div>
-        )}
-      </section>
-
-      <section className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
-        <h2 className="mb-4 text-xl font-semibold text-white">Friends</h2>
-        {friends.length === 0 ? (
-          <p className="text-slate-500">No friends yet.</p>
-        ) : (
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            {friends.map((friend) => {
-              const friendAvatar = resolveMediaUrl(friend.profilePictureUrl);
-              return (
-                <div
-                  key={friend.id}
-                  className="flex items-center gap-3 rounded-xl border border-slate-800 bg-slate-950 p-3"
-                >
-                  {friendAvatar ? (
-                    <img
-                      src={friendAvatar}
-                      alt={friend.username}
-                      className="h-10 w-10 rounded-full border border-slate-700 object-cover"
-                    />
-                  ) : (
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-700 bg-slate-800 text-sm font-semibold text-white">
-                      {friend.username.charAt(0).toUpperCase()}
-                    </div>
-                  )}
-                  <span className="truncate text-slate-200">
-                    @{friend.username}
-                  </span>
-                </div>
-              );
-            })}
           </div>
         )}
       </section>

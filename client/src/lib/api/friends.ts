@@ -20,5 +20,10 @@ export const friendsApi = {
     if (params?.limit) search.set("limit", String(params.limit));
     const query = search.toString();
     return request<FriendsResponse>(`/friends${query ? `?${query}` : ""}`);
-  }
+  },
+  remove: (friendId: string) =>
+    request<{ message: string }>("/friends/remove", {
+      method: "DELETE",
+      body: { friendId },
+    }),
 };
