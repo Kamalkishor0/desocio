@@ -57,7 +57,7 @@ export default function HomeLayout({
                     <Sidebar expanded={expanded} />
                 </aside>
 
-                <section className="slim-scrollbar h-[calc(100vh-1rem)] overflow-y-auto bg-red-900 md:h-[calc(100vh-4rem)]">
+                <section className="slim-scrollbar h-[calc(100vh-1rem)] overflow-y-auto md:h-[calc(100vh-4rem)]">
                     {children}
                 </section>
             </div>

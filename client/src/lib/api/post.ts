@@ -49,7 +49,6 @@ export interface ReactToPostRequest {
 
 export const postApi = {
   async create(data: CreatePostRequest) {
-    console.log("postApi.create called", data);
     const formData = new FormData();
     if (data.text) {
       formData.append("text", data.text);
