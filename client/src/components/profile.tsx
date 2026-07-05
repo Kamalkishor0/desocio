@@ -26,6 +26,7 @@ export function Profile() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedPost, setSelectedPost] = useState<FeedPost | null>(null);
+  const [activeTab, setActiveTab] = useState<"posts" | "thoughts">("posts");
 
   useEffect(() => {
     let active = true;
@@ -141,46 +142,70 @@ export function Profile() {
       </section>
 
       <section className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
-        <h2 className="mb-4 text-xl font-semibold text-white">Posts</h2>
-        {posts.length === 0 ? (
-          <p className="text-slate-500">No posts yet.</p>
-        ) : (
-          <div className="grid grid-cols-3 gap-1 sm:gap-2">
-            {posts.map((post) => {
-              const cover = post.photos?.length
-                ? resolveMediaUrl(
-                    post.photos.slice().sort((a, b) => a.position - b.position)[0]
-                      .url
-                  )
-                : null;
-              return (
-                <button
-                  key={post.id}
-                  type="button"
-                  onClick={() => setSelectedPost(post)}
-                  className="group relative aspect-square overflow-hidden rounded-lg border border-slate-800 bg-slate-950 text-left"
-                >
-                  {cover ? (
-                    <img
-                      src={cover}
-                      alt=""
-                      className="h-full w-full object-cover transition group-hover:opacity-80"
-                    />
-                  ) : (
-                    <span className="line-clamp-5 block h-full w-full p-2 text-xs text-slate-300">
-                      {post.text}
-                    </span>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-        )}
-      </section>
+        <div className="mb-4 inline-flex rounded-xl border border-slate-800 bg-slate-950 p-1">
+          <button
+            type="button"
+            onClick={() => setActiveTab("posts")}
+            aria-pressed={activeTab === "posts"}
+            className={`rounded-lg px-4 py-1.5 text-sm font-medium transition ${
+              activeTab === "posts"
+                ? "bg-blue-600 text-white"
+                : "text-slate-300 hover:text-white"
+            }`}
+          >
+            Posts ({posts.length})
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab("thoughts")}
+            aria-pressed={activeTab === "thoughts"}
+            className={`rounded-lg px-4 py-1.5 text-sm font-medium transition ${
+              activeTab === "thoughts"
+                ? "bg-blue-600 text-white"
+                : "text-slate-300 hover:text-white"
+            }`}
+          >
+            Thoughts ({thoughts.length})
+          </button>
+        </div>
 
-      <section className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
-        <h2 className="mb-4 text-xl font-semibold text-white">Thoughts</h2>
-        {thoughts.length === 0 ? (
+        {activeTab === "posts" ? (
+          posts.length === 0 ? (
+            <p className="text-slate-500">No posts yet.</p>
+          ) : (
+            <div className="grid grid-cols-3 gap-1 sm:gap-2">
+              {posts.map((post) => {
+                const cover = post.photos?.length
+                  ? resolveMediaUrl(
+                      post.photos
+                        .slice()
+                        .sort((a, b) => a.position - b.position)[0].url
+                    )
+                  : null;
+                return (
+                  <button
+                    key={post.id}
+                    type="button"
+                    onClick={() => setSelectedPost(post)}
+                    className="group relative aspect-square overflow-hidden rounded-lg border border-slate-800 bg-slate-950 text-left"
+                  >
+                    {cover ? (
+                      <img
+                        src={cover}
+                        alt=""
+                        className="h-full w-full object-cover transition group-hover:opacity-80"
+                      />
+                    ) : (
+                      <span className="line-clamp-5 block h-full w-full p-2 text-xs text-slate-300">
+                        {post.text}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          )
+        ) : thoughts.length === 0 ? (
           <p className="text-slate-500">No thoughts yet.</p>
         ) : (
           <div className="space-y-4">
@@ -208,9 +233,7 @@ export function Profile() {
       </section>
 
       <section className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
-        <h2 className="mb-4 text-xl font-semibold text-white">
-          Friends ({friendsCount})
-        </h2>
+        <h2 className="mb-4 text-xl font-semibold text-white">Friends</h2>
         {friends.length === 0 ? (
           <p className="text-slate-500">No friends yet.</p>
         ) : (
