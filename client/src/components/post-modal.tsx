@@ -192,54 +192,42 @@ export function PostModal({ post, author, onClose }: PostModalProps) {
         </div>
 
         <div className="flex min-h-0 flex-1 flex-col md:w-1/2">
-          <div className="flex items-center justify-between border-b border-slate-800 p-4">
-            <div className="flex items-center gap-3">
+          <div className="flex items-start justify-between gap-3 border-b border-slate-800 p-4">
+            <div className="flex min-w-0 gap-3">
               {avatarUrl ? (
                 <img
                   src={avatarUrl}
                   alt={author.username}
-                  className="h-9 w-9 rounded-full border border-slate-700 object-cover"
+                  className="h-9 w-9 shrink-0 rounded-full border border-slate-700 object-cover"
                 />
               ) : (
-                <div className="flex h-9 w-9 items-center justify-center rounded-full border border-slate-700 bg-slate-800 text-sm font-semibold text-white">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-slate-700 bg-slate-800 text-sm font-semibold text-white">
                   {author.username.charAt(0).toUpperCase()}
                 </div>
               )}
-              <span className="font-medium text-white">@{author.username}</span>
+              <p className="min-w-0 text-sm text-slate-200">
+                <span className="font-semibold text-white">
+                  @{author.username}
+                </span>
+                {photos.length > 0 && post.text ? (
+                  <>
+                    {" "}
+                    <span className="whitespace-pre-wrap">{post.text}</span>
+                  </>
+                ) : null}
+              </p>
             </div>
             <button
               type="button"
               onClick={onClose}
               aria-label="Close"
-              className="rounded-full p-1 text-slate-400 transition hover:bg-slate-800 hover:text-white"
+              className="shrink-0 rounded-full p-1 text-slate-400 transition hover:bg-slate-800 hover:text-white"
             >
               <X size={20} />
             </button>
           </div>
 
           <div className="min-h-0 flex-1 space-y-4 overflow-y-auto p-4">
-            {photos.length > 0 && post.text ? (
-              <div className="flex gap-3 border-b border-slate-800 pb-4">
-                {avatarUrl ? (
-                  <img
-                    src={avatarUrl}
-                    alt={author.username}
-                    className="h-7 w-7 shrink-0 rounded-full border border-slate-700 object-cover"
-                  />
-                ) : (
-                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-slate-700 bg-slate-800 text-xs font-semibold text-white">
-                    {author.username.charAt(0).toUpperCase()}
-                  </div>
-                )}
-                <p className="text-sm text-slate-200">
-                  <span className="font-semibold text-white">
-                    @{author.username}
-                  </span>{" "}
-                  <span className="whitespace-pre-wrap">{post.text}</span>
-                </p>
-              </div>
-            ) : null}
-
             {comments.length === 0 ? (
               <p className="text-sm text-slate-500">No comments yet.</p>
             ) : (
