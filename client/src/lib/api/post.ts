@@ -1,5 +1,18 @@
 import { request } from "./client";
 import type { PostReactionType } from "@/types/post";
+
+export type PostComment = {
+  id: string;
+  postId: string;
+  authorId: string;
+  text: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type PostReactionState = {
+  reaction: PostReactionType | null;
+};
 const POSTS = {
   CREATE: "/posts",
   LIST: "/posts",
@@ -62,25 +75,25 @@ export const postApi = {
   },
 
   async react(postId: string, type: PostReactionType) {
-    return request(POSTS.REACT(postId), {
+    return request<{ message: string }>(POSTS.REACT(postId), {
       method: "POST",
       body: { type },
     });
   },
 
   async getReaction(postId: string) {
-    return request(POSTS.REACTIONS(postId));
+    return request<PostReactionState>(POSTS.REACTIONS(postId));
   },
 
   async comment(postId: string, text: string) {
-    return request(POSTS.COMMENT(postId), {
+    return request<PostComment>(POSTS.COMMENT(postId), {
       method: "POST",
       body: { text },
     });
   },
 
   async getComments(postId: string) {
-    return request(POSTS.COMMENTS(postId));
+    return request<PostComment[]>(POSTS.COMMENTS(postId));
   },
 
   async deleteComment(commentId: string) {

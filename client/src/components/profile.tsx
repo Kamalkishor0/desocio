@@ -9,34 +9,8 @@ import type { AuthUser } from "@/types/auth";
 import type { FeedPost } from "@/lib/api/feed";
 import type { Thought } from "@/lib/api/thought";
 import type { Friend } from "@/lib/api/friends";
-
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
-
-function resolveMediaUrl(url: string | null | undefined): string | null {
-  if (!url) {
-    return null;
-  }
-  if (url.startsWith("http://") || url.startsWith("https://")) {
-    return url;
-  }
-  return `${API_BASE_URL}${url}`;
-}
-
-function formatDate(value: string | null | undefined): string {
-  if (!value) {
-    return "";
-  }
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) {
-    return "";
-  }
-  return date.toLocaleDateString(undefined, {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
-}
+import { formatDate, resolveMediaUrl } from "@/lib/media";
+import { PostModal } from "@/components/post-modal";
 
 function initialFor(user: AuthUser): string {
   const source = user.name || user.username || "?";
@@ -48,8 +22,10 @@ export function Profile() {
   const [posts, setPosts] = useState<FeedPost[]>([]);
   const [thoughts, setThoughts] = useState<Thought[]>([]);
   const [friends, setFriends] = useState<Friend[]>([]);
+  const [friendsCount, setFriendsCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedPost, setSelectedPost] = useState<FeedPost | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -72,6 +48,7 @@ export function Profile() {
         setPosts(Array.isArray(postsResult) ? postsResult : []);
         setThoughts(Array.isArray(thoughtsResult) ? thoughtsResult : []);
         setFriends(friendsResult.data ?? []);
+        setFriendsCount(friendsResult.total ?? friendsResult.data?.length ?? 0);
       } catch (err) {
         if (!active) {
           return;
@@ -126,12 +103,29 @@ export function Profile() {
             </div>
           )}
 
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             <h1 className="truncate text-2xl font-semibold text-white">
               {user.name}
             </h1>
             <p className="text-slate-400">@{user.username}</p>
             <p className="truncate text-sm text-slate-500">{user.email}</p>
+
+            <div className="mt-3 flex gap-6 text-sm">
+              <span className="text-slate-300">
+                <span className="font-semibold text-white">{posts.length}</span>{" "}
+                posts
+              </span>
+              <span className="text-slate-300">
+                <span className="font-semibold text-white">{friendsCount}</span>{" "}
+                friends
+              </span>
+              <span className="text-slate-300">
+                <span className="font-semibold text-white">
+                  {thoughts.length}
+                </span>{" "}
+                thoughts
+              </span>
+            </div>
           </div>
         </div>
 
@@ -151,39 +145,35 @@ export function Profile() {
         {posts.length === 0 ? (
           <p className="text-slate-500">No posts yet.</p>
         ) : (
-          <div className="space-y-4">
-            {posts.map((post) => (
-              <article
-                key={post.id}
-                className="rounded-xl border border-slate-800 bg-slate-950 p-4"
-              >
-                {post.text ? (
-                  <p className="whitespace-pre-wrap text-slate-200">
-                    {post.text}
-                  </p>
-                ) : null}
-
-                {post.photos && post.photos.length > 0 ? (
-                  <div className="mt-3 grid grid-cols-2 gap-3 md:grid-cols-3">
-                    {post.photos
-                      .slice()
-                      .sort((a, b) => a.position - b.position)
-                      .map((photo) => (
-                        <img
-                          key={photo.id}
-                          src={resolveMediaUrl(photo.url) ?? undefined}
-                          alt=""
-                          className="h-40 w-full rounded-lg border border-slate-800 object-cover"
-                        />
-                      ))}
-                  </div>
-                ) : null}
-
-                <p className="mt-3 text-xs text-slate-500">
-                  {formatDate(post.createdAt)}
-                </p>
-              </article>
-            ))}
+          <div className="grid grid-cols-3 gap-1 sm:gap-2">
+            {posts.map((post) => {
+              const cover = post.photos?.length
+                ? resolveMediaUrl(
+                    post.photos.slice().sort((a, b) => a.position - b.position)[0]
+                      .url
+                  )
+                : null;
+              return (
+                <button
+                  key={post.id}
+                  type="button"
+                  onClick={() => setSelectedPost(post)}
+                  className="group relative aspect-square overflow-hidden rounded-lg border border-slate-800 bg-slate-950 text-left"
+                >
+                  {cover ? (
+                    <img
+                      src={cover}
+                      alt=""
+                      className="h-full w-full object-cover transition group-hover:opacity-80"
+                    />
+                  ) : (
+                    <span className="line-clamp-5 block h-full w-full p-2 text-xs text-slate-300">
+                      {post.text}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
           </div>
         )}
       </section>
@@ -218,7 +208,9 @@ export function Profile() {
       </section>
 
       <section className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
-        <h2 className="mb-4 text-xl font-semibold text-white">Friends</h2>
+        <h2 className="mb-4 text-xl font-semibold text-white">
+          Friends ({friendsCount})
+        </h2>
         {friends.length === 0 ? (
           <p className="text-slate-500">No friends yet.</p>
         ) : (
@@ -250,6 +242,18 @@ export function Profile() {
           </div>
         )}
       </section>
+
+      {selectedPost ? (
+        <PostModal
+          post={selectedPost}
+          author={{
+            name: user.name,
+            username: user.username,
+            profilePictureUrl: user.profilePictureUrl,
+          }}
+          onClose={() => setSelectedPost(null)}
+        />
+      ) : null}
     </div>
   );
 }
