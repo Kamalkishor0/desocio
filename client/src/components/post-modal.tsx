@@ -185,7 +185,7 @@ export function PostModal({ post, author, onClose }: PostModalProps) {
       >
         <div className="flex items-center justify-center bg-slate-950 md:w-1/2">
           {photos.length > 0 ? (
-            <div className="max-h-[45vh] w-full overflow-y-auto md:max-h-[90vh]">
+            <div className="slim-scrollbar max-h-[45vh] w-full overflow-y-auto md:max-h-[90vh]">
               {photos.map((photo) => (
                 <img
                   key={photo.id}
@@ -235,7 +235,7 @@ export function PostModal({ post, author, onClose }: PostModalProps) {
             </button>
           </div>
 
-          <div className="min-h-0 flex-1 space-y-4 overflow-y-auto p-4">
+          <div className="slim-scrollbar min-h-0 flex-1 space-y-4 overflow-y-auto p-4">
             {comments.length === 0 ? (
               <p className="text-sm text-slate-500">No comments yet.</p>
             ) : (
