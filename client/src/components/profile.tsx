@@ -106,7 +106,6 @@ export function Profile() {
               {user.name}
             </h1>
             <p className="text-slate-400">@{user.username}</p>
-            <p className="truncate text-sm text-slate-500">{user.email}</p>
 
             <div className="mt-3 flex gap-6 text-sm">
               <span className="text-slate-300">
@@ -133,36 +132,34 @@ export function Profile() {
 
         {user.createdAt ? (
           <p className="mt-4 text-sm text-slate-500">
-            Joined {formatDate(user.createdAt)}
+            OG since {formatDate(user.createdAt)}
           </p>
         ) : null}
       </section>
 
       <section className="glass rounded-3xl bg-slate-900/60 p-6 shadow-2xl shadow-slate-950/40 md:p-8">
-        <div className="mb-4 inline-flex rounded-xl border border-slate-800 bg-slate-950 p-1">
+        <div className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/5 p-1 mb-4 text-sm">
           <button
             type="button"
             onClick={() => setActiveTab("posts")}
             aria-pressed={activeTab === "posts"}
-            className={`rounded-lg px-4 py-1.5 text-sm font-medium transition ${
+            className={`rounded-full px-4 py-2 transition ${
               activeTab === "posts"
-                ? "bg-blue-600 text-white"
-                : "text-slate-300 hover:text-white"
+                ? "bg-white text-slate-950" : "text-slate-300"
             }`}
           >
-            Posts ({posts.length})
+            Posts
           </button>
           <button
             type="button"
             onClick={() => setActiveTab("thoughts")}
             aria-pressed={activeTab === "thoughts"}
-            className={`rounded-lg px-4 py-1.5 text-sm font-medium transition ${
+            className={`rounded-full px-4 py-2 transition ${
               activeTab === "thoughts"
-                ? "bg-blue-600 text-white"
-                : "text-slate-300 hover:text-white"
+                ? "bg-white text-slate-950" : "text-slate-300"
             }`}
           >
-            Thoughts ({thoughts.length})
+            Thoughts
           </button>
         </div>
 

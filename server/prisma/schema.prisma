@@ -136,6 +136,7 @@ model FriendshipInteraction {
   @@unique([userId, friendId])
   @@index([friendId])
   @@index([userId, score(sort: Desc)])
+  @@map("friendship_interactions")
 }
 
 model Post {
@@ -206,6 +207,7 @@ model Thought {
 
   @@index([authorId, createdAt])
   @@index([visibility, createdAt])
+  @@map("thoughts")
 }
 
 model ThoughtSupport {
@@ -219,6 +221,7 @@ model ThoughtSupport {
   @@unique([userId, thoughtId])
   @@index([userId])
   @@index([thoughtId])
+  @@map("thought_supports")
 }
 
 model PostComment {
@@ -237,6 +240,7 @@ model PostComment {
   @@index([authorId, createdAt])
   @@index([postId, createdAt])
   @@index([parentId, createdAt])
+  @@map("post_comments")
 }
 
 model ThoughtComment {
@@ -251,6 +255,7 @@ model ThoughtComment {
 
   @@index([authorId, createdAt])
   @@index([thoughtId, createdAt])
+  @@map("thought_comments")
 }
 
 model SavedThought {
@@ -264,6 +269,7 @@ model SavedThought {
   @@unique([userId, thoughtId])
   @@index([userId])
   @@index([thoughtId])
+  @@map("saved_thoughts")
 }
 
 model RefreshToken {
