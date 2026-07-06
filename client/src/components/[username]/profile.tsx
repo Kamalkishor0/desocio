@@ -1,13 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { api, ApiResponseError, request } from "@/lib/api";
+import { api, ApiResponseError } from "@/lib/api";
 import type { AuthUser } from "@/types/auth";
 import type { FeedPost } from "@/lib/api/feed";
 import type { Thought } from "@/lib/api/thought";
 import { formatDate, resolveMediaUrl } from "@/lib/media";
 import { PostModal } from "@/components/post-modal";
 import { NotFound } from "../not-found";
+import { useAuth } from "@/context/AuthContext";
+import type { FriendshipStatusType } from "@/constants/friendships";
 
 function initialFor(user: AuthUser): string {
   const source = user.name || user.username || "?";
@@ -24,6 +26,9 @@ export function Profile({ username }: { username: string }) {
   const [error, setError] = useState<string | null>(null);
   const [selectedPost, setSelectedPost] = useState<FeedPost | null>(null);
   const [activeTab, setActiveTab] = useState<"posts" | "thoughts">("posts");
+  const { user: authUser } = useAuth();
+  const [friendshipStatus, setFriendshipStatus] =
+    useState<FriendshipStatusType>("none");
 
   useEffect(() => {
     let active = true;
@@ -42,6 +47,7 @@ export function Profile({ username }: { username: string }) {
         setPosts(Array.isArray(profile.posts) ? profile.posts : []);
         setThoughts(Array.isArray(profile.thoughts) ? profile.thoughts : []);
         setFriendsCount(profile.friendsCount ?? 0);
+        setFriendshipStatus(profile.friendshipStatus);
       } catch (err) {
         if (!active) return;
 
@@ -97,49 +103,100 @@ export function Profile({ username }: { username: string }) {
       />
     );
   }
+  const isOwnProfile = authUser?.id === user.id;
   const avatarUrl = resolveMediaUrl(user.profilePictureUrl);
+  const handleAddFriend = async () => {
+    if (!user) return;
 
+    try {
+      await api.sendFriendRequest(user.id);
+      setFriendshipStatus("pending_sent");
+    } catch (err) {
+      console.error(err);
+    }
+  };
   return (
     <div className="mx-auto w-full max-w-2xl space-y-6 p-6">
       <section className="glass rounded-3xl bg-slate-900/60 p-6 shadow-2xl shadow-slate-950/40 md:p-8">
-        <div className="flex items-center gap-5">
-          {avatarUrl ? (
-            <img
-              src={avatarUrl}
-              alt={user.name}
-              className="h-20 w-20 rounded-full border border-slate-700 object-cover"
-            />
-          ) : (
-            <div className="flex h-20 w-20 items-center justify-center rounded-full border border-slate-700 bg-slate-800 text-2xl font-semibold text-white">
-              {initialFor(user)}
-            </div>
-          )}
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex min-w-0 flex-1 items-center gap-5">
+            {avatarUrl ? (
+              <img
+                src={avatarUrl}
+                alt={user.name}
+                className="h-20 w-20 rounded-full border border-slate-700 object-cover"
+              />
+            ) : (
+              <div className="flex h-20 w-20 items-center justify-center rounded-full border border-slate-700 bg-slate-800 text-2xl font-semibold text-white">
+                {initialFor(user)}
+              </div>
+            )}
 
-          <div className="min-w-0 flex-1">
-            <h1 className="truncate text-2xl font-semibold text-white">
-              {user.name}
-            </h1>
-            <p className="text-slate-400">@{user.username}</p>
+            <div className="min-w-0 flex-1">
+              <h1 className="truncate text-2xl font-semibold text-white">
+                {user.name}
+              </h1>
+              <p className="text-slate-400">@{user.username}</p>
 
-            <div className="mt-3 flex gap-6 text-sm">
-              <span className="text-slate-300">
-                <span className="font-semibold text-white">{posts.length}</span>{" "}
-                posts
-              </span>
-              <span className="text-slate-300">
-                <span className="font-semibold text-white">{friendsCount}</span>{" "}
-                friends
-              </span>
-              <span className="text-slate-300">
-                <span className="font-semibold text-white">
-                  {thoughts.length}
-                </span>{" "}
-                thoughts
-              </span>
+              <div className="mt-3 flex gap-6 text-sm">
+                <span className="text-slate-300">
+                  <span className="font-semibold text-white">{posts.length}</span> posts
+                </span>
+
+                <span className="text-slate-300">
+                  <span className="font-semibold text-white">{friendsCount}</span> friends
+                </span>
+
+                <span className="text-slate-300">
+                  <span className="font-semibold text-white">{thoughts.length}</span> thoughts
+                </span>
+              </div>
             </div>
           </div>
-        </div>
 
+          {!isOwnProfile && (
+            <>
+              {friendshipStatus === "none" && (
+                <button
+                  type="button"
+                  onClick={handleAddFriend}
+                  className="shrink-0 rounded-full bg-white px-5 py-2 text-sm font-medium text-slate-950 transition hover:bg-slate-200"
+                >
+                  Add Friend
+                </button>
+              )}
+
+              {friendshipStatus === "pending_sent" && (
+                <button
+                  type="button"
+                  disabled
+                  className="shrink-0 cursor-not-allowed rounded-full bg-slate-700 px-5 py-2 text-sm font-medium text-slate-300"
+                >
+                  Request Sent
+                </button>
+              )}
+
+              {friendshipStatus === "pending_received" && (
+                <button
+                  type="button"
+                  className="shrink-0 rounded-full bg-white px-5 py-2 text-sm font-medium text-slate-950 transition hover:bg-slate-200"
+                >
+                  Accept Request
+                </button>
+              )}
+
+              {friendshipStatus === "friends" && (
+                <button
+                  type="button"
+                  disabled
+                  className="shrink-0 cursor-default rounded-full border border-slate-700 bg-transparent px-5 py-2 text-sm font-medium text-slate-300"
+                >
+                  Friends
+                </button>
+              )}
+            </>
+          )}
+        </div>
         {user.bio ? (
           <p className="mt-4 text-slate-300">{user.bio}</p>
         ) : null}

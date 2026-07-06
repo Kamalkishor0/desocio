@@ -26,4 +26,9 @@ export const friendsApi = {
       method: "DELETE",
       body: { friendId },
     }),
+  sendFriendRequest: (receiverId: string) =>
+    request<{ message: string }>("/friends/request", {
+      method: "POST",
+      body: { receiverId },
+    }),
 };
