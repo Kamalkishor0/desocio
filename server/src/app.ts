@@ -8,6 +8,7 @@ import postRouter from "./routes/post.routes";
 import friendsRouter from "./routes/friends.routes";
 import thoughtsRouter from "./routes/thought.routes";
 import { authMiddleware } from "./middlewares/auth.middleware";
+import profileRouter from "./routes/profile.routes";
 const app = express();
 
 app.use(cors({ origin: true, credentials: true }));
@@ -23,5 +24,5 @@ app.use("/feed", authMiddleware, feedRouter);
 app.use("/posts", authMiddleware, postRouter);
 app.use("/friends", authMiddleware, friendsRouter);
 app.use("/thoughts", authMiddleware, thoughtsRouter);
-
+app.use("/profile", authMiddleware, profileRouter);
 export default app;

@@ -98,6 +98,15 @@ export function PostModal({ post, author, onClose }: PostModalProps) {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [onClose]);
 
+  async function fetchReaction() {
+    try {
+      const next = await postApi.getReaction(post.id);
+      setReaction(next.reaction);
+    } catch (error) {
+      console.error("Failed to fetch reaction:", error);
+    }
+  }
+
   async function toggleReaction(type: PostReactionType) {
     const previous = reaction;
     setReaction((current) => (current === type ? null : type));
@@ -323,7 +332,6 @@ export function PostModal({ post, author, onClose }: PostModalProps) {
                 );
               })}
             </div>
-
             <p className="mt-3 text-xs text-slate-500">
               {formatDate(post.createdAt)}
             </p>
