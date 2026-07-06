@@ -33,9 +33,9 @@ export function Profile() {
       setLoading(true);
       setError(null);
       try {
-        const [meResult, postsResult, thoughtsResult, friendsResult] =
+        const [profileResult, postsResult, thoughtsResult, friendsResult] =
           await Promise.all([
-            api.me(),
+            api.getProfileByUsername(user?.username || ""),
             postApi.getAll() as Promise<FeedPost[]>,
             thoughtApi.list(),
             friendsApi.list(),
@@ -43,7 +43,7 @@ export function Profile() {
         if (!active) {
           return;
         }
-        setUser(meResult.user);
+        setUser(profileResult);
         setPosts(Array.isArray(postsResult) ? postsResult : []);
         setThoughts(Array.isArray(thoughtsResult) ? thoughtsResult : []);
         setFriendsCount(friendsResult.total ?? friendsResult.data?.length ?? 0);
