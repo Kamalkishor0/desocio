@@ -83,3 +83,35 @@ export async function getProfileByUsername(req: AuthenticatedRequest, res: Respo
             profile._count.userBFriendships,
     });
 }
+
+export async function getSearchResult(req: AuthenticatedRequest, res: Response) {
+    const auth = req.auth;
+    if (!auth) {
+        return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const username = getSingleString(req.params.username);
+    if (!username) {
+        return res.status(400).json({ message: "Username is required" });
+    }
+
+    const users = await prisma.user.findMany({
+        where: {
+            username: {
+                startsWith: username,
+                mode: "insensitive",
+            },
+        },
+        select: {
+            id: true,
+            name: true,
+            username: true,
+            profilePictureUrl: true,
+        },
+        orderBy: {
+            username: "asc",
+        },
+        take: 10,
+    });
+    res.json({ users });
+}

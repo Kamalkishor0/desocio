@@ -1,12 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { api , request } from "@/lib/api";
+import { api, ApiResponseError, request } from "@/lib/api";
 import type { AuthUser } from "@/types/auth";
 import type { FeedPost } from "@/lib/api/feed";
 import type { Thought } from "@/lib/api/thought";
 import { formatDate, resolveMediaUrl } from "@/lib/media";
 import { PostModal } from "@/components/post-modal";
+import { NotFound } from "../not-found";
 
 function initialFor(user: AuthUser): string {
   const source = user.name || user.username || "?";
@@ -14,6 +15,7 @@ function initialFor(user: AuthUser): string {
 }
 
 export function Profile({ username }: { username: string }) {
+  const [notFound, setNotFound] = useState(false);
   const [user, setUser] = useState<AuthUser | null>(null);
   const [posts, setPosts] = useState<FeedPost[]>([]);
   const [thoughts, setThoughts] = useState<Thought[]>([]);
@@ -24,39 +26,43 @@ export function Profile({ username }: { username: string }) {
   const [activeTab, setActiveTab] = useState<"posts" | "thoughts">("posts");
 
   useEffect(() => {
-  let active = true;
+    let active = true;
 
-  async function load() {
-    setLoading(true);
-    setError(null);
+    async function load() {
+      setLoading(true);
+      setError(null);
+      setNotFound(false);
 
-    try {
-      const profile = await api.getProfileByUsername(username);
+      try {
+        const profile = await api.getProfileByUsername(username);
 
-      if (!active) return;
+        if (!active) return;
 
-      setUser(profile.user);
-      setPosts(Array.isArray(profile.posts) ? profile.posts : []);
-      setThoughts(Array.isArray(profile.thoughts) ? profile.thoughts : []);
-      setFriendsCount(profile.friendsCount ?? 0);
-    } catch (err) {
-      if (!active) return;
+        setUser(profile.user);
+        setPosts(Array.isArray(profile.posts) ? profile.posts : []);
+        setThoughts(Array.isArray(profile.thoughts) ? profile.thoughts : []);
+        setFriendsCount(profile.friendsCount ?? 0);
+      } catch (err) {
+        if (!active) return;
 
-      console.error("Failed to load profile:", err);
-      setError("Failed to load profile. Please try again.");
-    } finally {
-      if (active) {
-        setLoading(false);
+        if (err instanceof ApiResponseError && err.status === 404) {
+          setNotFound(true);
+        } else {
+          setError("Failed to load profile. Please try again.");
+        }
+      } finally {
+        if (active) {
+          setLoading(false);
+        }
       }
     }
-  }
 
-  load();
+    load();
 
-  return () => {
-    active = false;
-  };
-}, [username]);
+    return () => {
+      active = false;
+    };
+  }, [username]);
 
   if (loading) {
     return (
@@ -66,14 +72,31 @@ export function Profile({ username }: { username: string }) {
     );
   }
 
-  if (error || !user) {
+  if (notFound) {
     return (
-      <div className="mx-auto w-full max-w-2xl p-6 text-red-400">
-        {error ?? "Profile not found."}
-      </div>
+      <NotFound
+        title="User not found"
+        description={`We couldn't find a user with the username "@${username}".`}
+      />
     );
   }
 
+  if (error) {
+    return (
+      <NotFound
+        title="Something went wrong"
+        description={error}
+      />
+    );
+  }
+  if (!user) {
+    return (
+      <NotFound
+        title="Something went wrong"
+        description="Unable to load the profile."
+      />
+    );
+  }
   const avatarUrl = resolveMediaUrl(user.profilePictureUrl);
 
   return (
@@ -134,10 +157,9 @@ export function Profile({ username }: { username: string }) {
             type="button"
             onClick={() => setActiveTab("posts")}
             aria-pressed={activeTab === "posts"}
-            className={`rounded-full px-4 py-2 transition ${
-              activeTab === "posts"
-                ? "bg-white text-slate-950" : "text-slate-300"
-            }`}
+            className={`rounded-full px-4 py-2 transition ${activeTab === "posts"
+              ? "bg-white text-slate-950" : "text-slate-300"
+              }`}
           >
             Posts
           </button>
@@ -145,10 +167,9 @@ export function Profile({ username }: { username: string }) {
             type="button"
             onClick={() => setActiveTab("thoughts")}
             aria-pressed={activeTab === "thoughts"}
-            className={`rounded-full px-4 py-2 transition ${
-              activeTab === "thoughts"
-                ? "bg-white text-slate-950" : "text-slate-300"
-            }`}
+            className={`rounded-full px-4 py-2 transition ${activeTab === "thoughts"
+              ? "bg-white text-slate-950" : "text-slate-300"
+              }`}
           >
             Thoughts
           </button>
@@ -162,10 +183,10 @@ export function Profile({ username }: { username: string }) {
               {posts.map((post) => {
                 const cover = post.photos?.length
                   ? resolveMediaUrl(
-                      post.photos
-                        .slice()
-                        .sort((a, b) => a.position - b.position)[0].url
-                    )
+                    post.photos
+                      .slice()
+                      .sort((a, b) => a.position - b.position)[0].url
+                  )
                   : null;
                 return (
                   <button

@@ -7,6 +7,7 @@ import {
   Settings,
   LogOut,
   SquarePen,
+  Search,
 } from "lucide-react";
 
 export type SidebarItem = {
@@ -18,7 +19,8 @@ export type SidebarItem = {
     | "friends"
     | "post"
     | "settings"
-    | "logout";
+    | "logout"
+    | "search";
   label: string;
   icon: typeof Home;
 };
@@ -28,6 +30,11 @@ export const topSidebarItems: SidebarItem[] = [
     id: "home",
     icon: Home,
     label: "Home",
+  },
+  {
+    id: "search",
+    icon: Search,
+    label: "Search",
   },
   {
     id: "messages",
@@ -53,7 +60,7 @@ export const topSidebarItems: SidebarItem[] = [
     id: "post",
     icon: SquarePen,
     label: "Post",
-  },
+  }
 ];
 
 export const bottomSidebarItems: SidebarItem[] = [

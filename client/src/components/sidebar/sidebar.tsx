@@ -25,7 +25,11 @@ export function Sidebar({ expanded }: SidebarProps) {
       case "home":
         router.push("/home");
         break;
-
+        
+      case "search":
+        router.push("/home/search");
+        break;
+  
       case "messages":
         router.push("/home/messages");
         break;
