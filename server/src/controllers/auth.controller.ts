@@ -233,10 +233,10 @@ export async function me(req: AuthenticatedRequest, res: Response) {
             name: true,
             username: true,
             email: true,
-            bio: true,
-            profilePictureUrl: true,
-            createdAt: true,
-            lastSeenAt: true
+            createdAt : true,
+            lastSeenAt : true,
+            profilePictureUrl : true,
+            bio : true
         }
     });
     if (!user) {

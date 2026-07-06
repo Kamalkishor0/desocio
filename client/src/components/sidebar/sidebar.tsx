@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { useAuth } from "@/context/AuthContext";
 
 import { api } from "@/lib/api";
 import {
@@ -15,6 +16,7 @@ type SidebarProps = {
 };
 
 export function Sidebar({ expanded }: SidebarProps) {
+  const {user} = useAuth();
   const router = useRouter();
   const [loggingOut, setLoggingOut] = useState(false);
 
@@ -25,13 +27,18 @@ export function Sidebar({ expanded }: SidebarProps) {
         break;
 
       case "messages":
+        router.push("/home/messages");
         break;
 
       case "notifications":
+        router.push("/home/notifications");
         break;
 
       case "profile":
-        router.push("/home/profile");
+        if(!user){
+          return router.push("/login");
+        }
+        router.push(`/home/profile/${user.username}`);
         break;
 
       case "friends":
