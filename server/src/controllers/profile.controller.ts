@@ -17,23 +17,69 @@ export async function getProfileByUsername(req: AuthenticatedRequest, res: Respo
         return res.status(400).json({ message: "Username is required" });
     }
 
-    const user = await prisma.user.findUnique({
+    const profile = await prisma.user.findUnique({
         where: { username },
         select: {
             id: true,
             name: true,
             username: true,
             email: true,
+            bio: true,
+            profilePictureUrl: true,
             createdAt: true,
             lastSeenAt: true,
-            profilePictureUrl: true,
-            bio: true,
-        }
+
+            posts: {
+                orderBy: {
+                    createdAt: "desc",
+                },
+                include: {
+                    photos: {
+                        orderBy: {
+                            position: "asc",
+                        },
+                    },
+                },
+            },
+
+            thoughts: {
+                orderBy: {
+                    createdAt: "desc",
+                },
+            },
+
+            _count: {
+                select: {
+                    userAFriendships: true,
+                    userBFriendships: true,
+                },
+            },
+        },
     });
 
-    if (!user) {
+    if (!profile) {
         return res.status(404).json({ message: "User not found" });
     }
+    const {
+        _count,
+        ...user
+    } = profile;
 
-    res.json({ user });
+    res.json({
+        user: {
+            id: profile.id,
+            name: profile.name,
+            username: profile.username,
+            email: profile.email,
+            bio: profile.bio,
+            profilePictureUrl: profile.profilePictureUrl,
+            createdAt: profile.createdAt,
+            lastSeenAt: profile.lastSeenAt,
+        },
+        posts: profile.posts,
+        thoughts: profile.thoughts,
+        friendsCount:
+            profile._count.userAFriendships +
+            profile._count.userBFriendships,
+    });
 }

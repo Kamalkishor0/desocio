@@ -1,10 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { api } from "@/lib/api";
-import { postApi } from "@/lib/api/post";
-import { thoughtApi } from "@/lib/api/thought";
-import { friendsApi } from "@/lib/api/friends";
+import { api , request } from "@/lib/api";
 import type { AuthUser } from "@/types/auth";
 import type { FeedPost } from "@/lib/api/feed";
 import type { Thought } from "@/lib/api/thought";
@@ -16,7 +13,7 @@ function initialFor(user: AuthUser): string {
   return source.charAt(0).toUpperCase();
 }
 
-export function Profile() {
+export function Profile({ username }: { username: string }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [posts, setPosts] = useState<FeedPost[]>([]);
   const [thoughts, setThoughts] = useState<Thought[]>([]);
@@ -27,45 +24,39 @@ export function Profile() {
   const [activeTab, setActiveTab] = useState<"posts" | "thoughts">("posts");
 
   useEffect(() => {
-    let active = true;
+  let active = true;
 
-    async function load() {
-      setLoading(true);
-      setError(null);
-      try {
-        const [profileResult, postsResult, thoughtsResult, friendsResult] =
-          await Promise.all([
-            api.getProfileByUsername(user?.username || ""),
-            postApi.getAll() as Promise<FeedPost[]>,
-            thoughtApi.list(),
-            friendsApi.list(),
-          ]);
-        if (!active) {
-          return;
-        }
-        setUser(profileResult);
-        setPosts(Array.isArray(postsResult) ? postsResult : []);
-        setThoughts(Array.isArray(thoughtsResult) ? thoughtsResult : []);
-        setFriendsCount(friendsResult.total ?? friendsResult.data?.length ?? 0);
-      } catch (err) {
-        if (!active) {
-          return;
-        }
-        console.error("Failed to load profile:", err);
-        setError("Failed to load profile. Please try again.");
-      } finally {
-        if (active) {
-          setLoading(false);
-        }
+  async function load() {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const profile = await api.getProfileByUsername(username);
+
+      if (!active) return;
+
+      setUser(profile.user);
+      setPosts(Array.isArray(profile.posts) ? profile.posts : []);
+      setThoughts(Array.isArray(profile.thoughts) ? profile.thoughts : []);
+      setFriendsCount(profile.friendsCount ?? 0);
+    } catch (err) {
+      if (!active) return;
+
+      console.error("Failed to load profile:", err);
+      setError("Failed to load profile. Please try again.");
+    } finally {
+      if (active) {
+        setLoading(false);
       }
     }
+  }
 
-    load();
+  load();
 
-    return () => {
-      active = false;
-    };
-  }, []);
+  return () => {
+    active = false;
+  };
+}, [username]);
 
   if (loading) {
     return (
