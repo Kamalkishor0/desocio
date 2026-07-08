@@ -10,6 +10,7 @@ import { PostModal } from "@/components/post-modal";
 import { NotFound } from "../not-found";
 import { useAuth } from "@/context/AuthContext";
 import type { FriendshipStatusType } from "@/constants/friendships";
+import { useRouter } from "next/navigation";
 
 function initialFor(user: AuthUser): string {
   const source = user.name || user.username || "?";
@@ -115,6 +116,21 @@ export function Profile({ username }: { username: string }) {
       console.error(err);
     }
   };
+  const handleCancelRequest = async () => {
+    if (!user) return;
+
+    try {
+      await api.cancelFriendRequest(user.id);
+      setFriendshipStatus("none");
+    } catch (err) {
+      console.error(err);
+    }
+  };
+  const router = useRouter();
+  const handleFriendsClick = () => {
+    if (!isOwnProfile) return;
+    router.push("/home/friends");
+  };
   return (
     <div className="mx-auto w-full max-w-2xl space-y-6 p-6">
       <section className="glass rounded-3xl bg-slate-900/60 p-6 shadow-2xl shadow-slate-950/40 md:p-8">
@@ -143,7 +159,7 @@ export function Profile({ username }: { username: string }) {
                   <span className="font-semibold text-white">{posts.length}</span> posts
                 </span>
 
-                <span className="text-slate-300">
+                <span onClick={handleFriendsClick} className="text-slate-300 hover:cursor-pointer hover:text-white">
                   <span className="font-semibold text-white">{friendsCount}</span> friends
                 </span>
 
@@ -169,10 +185,10 @@ export function Profile({ username }: { username: string }) {
               {friendshipStatus === "pending_sent" && (
                 <button
                   type="button"
-                  disabled
-                  className="shrink-0 cursor-not-allowed rounded-full bg-slate-700 px-5 py-2 text-sm font-medium text-slate-300"
+                  onClick={handleCancelRequest}
+                  className="shrink-0 rounded-full border border-slate-700 bg-slate-800 px-5 py-2 text-sm font-medium text-slate-200 transition hover:border-red-500 hover:bg-red-500/10 hover:text-red-400"
                 >
-                  Request Sent
+                  Cancel Request
                 </button>
               )}
 

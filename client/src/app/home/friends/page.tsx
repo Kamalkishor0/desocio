@@ -1,6 +1,7 @@
 "use client";
 
-import { FriendsList } from "@/components/friends-list";
+import { FriendsList } from "@/components/friendships/friends-list";
+import { FriendRequests } from "@/components/friendships/friend-request";
 import { useState } from "react";
 
 export default function FriendsPage() {
@@ -39,9 +40,7 @@ export default function FriendsPage() {
       {mode === "friends" ? (
         <FriendsList />
       ) : (
-        <div className="mt-4 text-center text-sm text-slate-400">
-          Friend requests feature is coming soon!
-        </div>
+        <FriendRequests />
       )}
     </div>
   );

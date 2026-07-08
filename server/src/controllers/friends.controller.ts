@@ -25,10 +25,10 @@ export async function getFriends(req: AuthenticatedRequest, res: Response) {
         take: limitNumber,
         include: {
             userA: {
-                select: { id: true, username: true, profilePictureUrl: true }
+                select: { id: true, name: true, username: true, profilePictureUrl: true }
             },
             userB: {
-                select: { id: true, username: true, profilePictureUrl: true }
+                select: { id: true, name: true, username: true, profilePictureUrl: true }
             }
         }
     });
@@ -226,7 +226,36 @@ export async function sendFriendRequest(req: AuthenticatedRequest, res: Response
 
     return res.status(201).json({ message: "Friend request sent" });
 }
+export async function cancelFriendRequest(req: AuthenticatedRequest, res: Response) {
+    // Implementation for canceling a sent friend request
+    const auth = req.auth;
+    if (!auth) {
+        return res.status(401).json({ message: "Unauthorized" });
+    }
 
+    const { receiverId } = req.body as { receiverId?: string };
+    if (!receiverId) {
+        return res.status(400).json({ message: "Receiver ID is required" });
+    }
+
+    const friendRequest = await prisma.friendRequest.findFirst({
+        where: {
+            senderId: auth.id,
+            receiverId,
+            status: "pending"
+        },
+        select: { id: true }
+    });
+    if (!friendRequest) {
+        return res.status(404).json({ message: "Friend request not found" });
+    }
+
+    await prisma.friendRequest.delete({
+        where: { id: friendRequest.id }
+    });
+
+    return res.status(200).json({ message: "Friend request canceled" });
+}
 export async function acceptFriendRequest(req: AuthenticatedRequest, res: Response) {
     // Implementation for accepting a friend request
     const auth = req.auth;

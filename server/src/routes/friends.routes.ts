@@ -7,7 +7,8 @@ import {
 	sendFriendRequest,
 	acceptFriendRequest,
 	rejectFriendRequest,
-	removeFriend
+	removeFriend,
+	cancelFriendRequest
 } from "../controllers/friends.controller";
 
 const friendsRouter = Router();
@@ -20,6 +21,7 @@ friendsRouter.get("/friend-requests/sent", getSentFriendRequests);
 friendsRouter.post("/request", sendFriendRequest);
 friendsRouter.post("/accept", acceptFriendRequest);
 friendsRouter.post("/reject", rejectFriendRequest);
+friendsRouter.post("/cancel", cancelFriendRequest);
 friendsRouter.delete("/remove", removeFriend);
 
 export default friendsRouter;

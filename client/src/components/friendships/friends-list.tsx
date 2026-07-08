@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { UserX } from "lucide-react";
-
+import { useRouter } from "next/navigation";
 import { friendsApi } from "@/lib/api/friends";
 import type { Friend } from "@/lib/api/friends";
 import { resolveMediaUrl } from "@/lib/media";
@@ -58,6 +58,10 @@ export function FriendsList() {
       setRemovingId(null);
     }
   }
+  const router = useRouter();
+  async function handleRedirect(username: string) {
+    router.push(`/home/profile/${username}`);
+  }
 
   if (loading) {
     return (
@@ -92,42 +96,51 @@ export function FriendsList() {
               return (
                 <li
                   key={friend.id}
-                  className="flex items-center gap-3 rounded-xl border border-slate-800 bg-slate-950 p-3"
+                  onClick={() => handleRedirect(friend.username)}
+                  className="flex cursor-pointer items-center justify-between rounded-2xl border border-slate-800 bg-slate-950 px-4 py-3 transition hover:border-slate-700 hover:bg-slate-900"
                 >
-                  {friendAvatar ? (
-                    <img
-                      src={friendAvatar}
-                      alt={friend.username}
-                      className="h-10 w-10 rounded-full border border-slate-700 object-cover"
-                    />
-                  ) : (
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-700 bg-slate-800 text-sm font-semibold text-white">
-                      {friend.username.charAt(0).toUpperCase()}
-                    </div>
-                  )}
+                  <div className="flex min-w-0 items-center gap-3">
+                    {friendAvatar ? (
+                      <img
+                        src={friendAvatar}
+                        alt={friend.username}
+                        className="h-11 w-11 rounded-full border border-slate-700 object-cover"
+                      />
+                    ) : (
+                      <div className="flex h-11 w-11 items-center justify-center rounded-full border border-slate-700 bg-slate-800 text-sm font-semibold text-white">
+                        {friend.username.charAt(0).toUpperCase()}
+                      </div>
+                    )}
 
-                  <span className="min-w-0 flex-1 truncate text-slate-200">
-                    @{friend.username}
-                  </span>
+                    <div className="min-w-0">
+                      <p className="truncate font-medium text-white">
+                        {friend.name}
+                      </p>
+                      <p className="truncate text-sm text-slate-400">
+                        @{friend.username}
+                      </p>
+                    </div>
+                  </div>
 
                   {isConfirming ? (
-                    <div className="flex items-center gap-2">
-                      <span className="hidden text-sm text-slate-400 sm:inline">
-                        Remove?
-                      </span>
+                    <div
+                      className="flex items-center gap-2"
+                      onClick={(e) => e.stopPropagation()}
+                    >
                       <button
                         type="button"
                         onClick={() => removeFriend(friend.id)}
                         disabled={isRemoving}
-                        className="rounded-lg bg-red-600 px-3 py-1.5 text-sm font-medium text-white transition hover:bg-red-500 disabled:opacity-60"
+                        className="rounded-full bg-red-600 px-3 py-1 text-xs font-medium text-white transition hover:bg-red-500"
                       >
                         {isRemoving ? "Removing..." : "Confirm"}
                       </button>
+
                       <button
                         type="button"
                         onClick={() => setConfirmingId(null)}
                         disabled={isRemoving}
-                        className="rounded-lg border border-slate-700 px-3 py-1.5 text-sm font-medium text-slate-300 transition hover:text-white disabled:opacity-60"
+                        className="rounded-full border border-slate-700 px-3 py-1 text-xs text-slate-300 transition hover:bg-slate-800"
                       >
                         Cancel
                       </button>
@@ -135,11 +148,14 @@ export function FriendsList() {
                   ) : (
                     <button
                       type="button"
-                      onClick={() => setConfirmingId(friend.id)}
-                      className="inline-flex items-center gap-2 rounded-lg border border-slate-700 px-3 py-1.5 text-sm font-medium text-slate-300 transition hover:border-red-500 hover:text-red-400"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setConfirmingId(friend.id);
+                      }}
+                      className="rounded-full p-2 text-slate-500 transition hover:bg-red-500/10 hover:text-red-400"
+                      title="Remove friend"
                     >
                       <UserX size={16} />
-                      Remove
                     </button>
                   )}
                 </li>
