@@ -22,6 +22,9 @@ export type PostComment = {
 export type PostReactionState = {
   reaction: PostReactionType | null;
 };
+type ReactResponse = {
+  reaction: PostReactionType | null;
+};
 const POSTS = {
   CREATE: "/posts",
   LIST: "/posts",
@@ -82,8 +85,8 @@ export const postApi = {
     });
   },
 
-  async react(postId: string, type: PostReactionType) {
-    return request<{ message: string }>(POSTS.REACT(postId), {
+  async react(postId: string, type: PostReactionType): Promise<ReactResponse> {
+    return request(`/posts/${postId}/react`, {
       method: "POST",
       body: { type },
     });

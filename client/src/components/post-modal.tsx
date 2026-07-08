@@ -9,7 +9,7 @@ import type { PostReactionType } from "@/types/post";
 import { formatDate, resolveMediaUrl } from "@/lib/media";
 
 type PostAuthor = {
-  name?: string;
+  name : string;
   username: string;
   profilePictureUrl?: string | null;
 };
@@ -111,9 +111,8 @@ export function PostModal({ post, author, onClose }: PostModalProps) {
     const previous = reaction;
     setReaction((current) => (current === type ? null : type));
     try {
-      await postApi.react(post.id, type);
-      const next = await postApi.getReaction(post.id);
-      setReaction(next.reaction);
+      const result = await postApi.react(post.id, type);
+      setReaction(result.reaction);
     } catch (error) {
       console.error("Failed to react:", error);
       setReaction(previous);

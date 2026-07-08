@@ -41,44 +41,53 @@ export async function getPrivateFeed(req: AuthenticatedRequest, res: Response) {
         },
         select: { userAId: true, userBId: true }
     });
-
     const friendIds = friendships.map((friendship) =>
         friendship.userAId === auth.id ? friendship.userBId : friendship.userAId
     );
 
     const authorIds = Array.from(new Set([auth.id, ...friendIds]));
 
-    const [posts, total] = await Promise.all([
-        prisma.post.findMany({
-            where: {
-                authorId: { in: authorIds },
-                visibility: PostVisibility.friends,
-                ...(cursorValue
-                    ? {
-                          OR: [
-                              { createdAt: { lt: cursorValue.createdAt } },
-                              {
-                                  createdAt: cursorValue.createdAt,
-                                  id: { lt: cursorValue.id }
-                              }
-                          ]
-                      }
-                    : {})
+    const posts = await prisma.post.findMany({
+        where: {
+            authorId: { in: authorIds },
+            visibility: PostVisibility.friends,
+            ...(cursorValue
+                ? {
+                    OR: [
+                        { createdAt: { lt: cursorValue.createdAt } },
+                        {
+                            createdAt: cursorValue.createdAt,
+                            id: { lt: cursorValue.id }
+                        }
+                    ]
+                }
+                : {})
+        },
+        include: {
+            photos: true,
+            author: {
+                select: {
+                    id: true,
+                    username: true,
+                    profilePictureUrl: true,
+                    name: true,
+                },
             },
-            include: {
-                photos: true,
-                author: { select: { id: true, username: true, profilePictureUrl: true } }
+            reactions: {
+                where: {
+                    userId: auth.id,
+                },
+                select: {
+                    type: true,
+                },
             },
-            orderBy: [{ createdAt: "desc" }, { id: "desc" }],
-            take: limitNumber + 1
-        }),
-        prisma.post.count({
-            where: {
-                authorId: { in: authorIds },
-                visibility: PostVisibility.friends
-            }
-        })
-    ]);
+        },
+        orderBy: [
+            { createdAt: "desc" },
+            { id: "desc" },
+        ],
+        take: limitNumber + 1,
+    });
 
     const hasMore = posts.length > limitNumber;
     const pagedPosts = hasMore ? posts.slice(0, limitNumber) : posts;
@@ -86,10 +95,19 @@ export async function getPrivateFeed(req: AuthenticatedRequest, res: Response) {
         ? `${pagedPosts[pagedPosts.length - 1].createdAt.toISOString()}|${pagedPosts[pagedPosts.length - 1].id}`
         : null;
 
+    const data = pagedPosts.map((post) => ({
+        id: post.id,
+        text: post.text,
+        createdAt: post.createdAt,
+        updatedAt: post.updatedAt,
+        visibility: post.visibility,
+        photos: post.photos,
+        author: post.author,
+        viewerReaction: post.reactions[0]?.type ?? null,
+    }));
+
     return res.json({
-        data: pagedPosts,
-        limit: limitNumber,
-        total,
-        nextCursor
+        data,
+        nextCursor,
     });
 }

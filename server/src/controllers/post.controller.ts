@@ -29,8 +29,8 @@ async function areTheyFriends(userIdA: string, userIdB: string): Promise<boolean
     return Boolean(friendship);
 }
 
-export async function createPost(req:AuthenticatedRequest, res: Response) {
-    
+export async function createPost(req: AuthenticatedRequest, res: Response) {
+
     const auth = req.auth;
     if (!auth) {
         return res.status(401).json({ message: "Unauthorized" });
@@ -55,7 +55,7 @@ export async function createPost(req:AuthenticatedRequest, res: Response) {
 
 export async function getAllPosts(req: AuthenticatedRequest, res: Response) {
     const auth = req.auth;
-    if(!auth) {
+    if (!auth) {
         return res.status(401).json({ message: "Unauthorized" });
     }
     const userIdParam = getSingleString(req.query.userId);
@@ -80,9 +80,9 @@ export async function getAllPosts(req: AuthenticatedRequest, res: Response) {
     res.json(posts);
 }
 
-export async function getPostById(req: AuthenticatedRequest, res: Response) {   
+export async function getPostById(req: AuthenticatedRequest, res: Response) {
     const auth = req.auth;
-    if(!auth) {
+    if (!auth) {
         return res.status(401).json({ message: "Unauthorized" });
     }
     const postId = getSingleString(req.params.id);
@@ -107,7 +107,7 @@ export async function getPostById(req: AuthenticatedRequest, res: Response) {
 }
 export async function deletePost(req: AuthenticatedRequest, res: Response) {
     const auth = req.auth;
-    if(!auth) {
+    if (!auth) {
         return res.status(401).json({ message: "Unauthorized" });
     }
     const postId = getSingleString(req.params.id);
@@ -127,7 +127,7 @@ export async function deletePost(req: AuthenticatedRequest, res: Response) {
 
 export async function reactToPost(req: AuthenticatedRequest, res: Response) {
     const auth = req.auth;
-    if(!auth) {
+    if (!auth) {
         return res.status(401).json({ message: "Unauthorized" });
     }
     const postId = getSingleString(req.params.id);
@@ -155,28 +155,44 @@ export async function reactToPost(req: AuthenticatedRequest, res: Response) {
     const existingReaction = await prisma.postReaction.findFirst({
         where: { postId, userId: auth.id },
     });
+
     if (existingReaction) {
         if (existingReaction.type === reactionType) {
-            await prisma.postReaction.delete({ where: { id: existingReaction.id } });
-            return res.json({ message: "Reaction removed" });
-        } else {
-            await prisma.postReaction.update({
+            await prisma.postReaction.delete({
                 where: { id: existingReaction.id },
-                data: { type: reactionType },
             });
-            return res.json({ message: "Reaction updated" });
+
+            return res.json({
+                reaction: null,
+            });
         }
-    } else {
-        await prisma.postReaction.create({
-            data: { postId, userId: auth.id, type: reactionType },
+
+        const updatedReaction = await prisma.postReaction.update({
+            where: { id: existingReaction.id },
+            data: { type: reactionType },
         });
-        return res.json({ message: "Reaction added" });
+
+        return res.json({
+            reaction: updatedReaction.type,
+        });
     }
+
+    const createdReaction = await prisma.postReaction.create({
+        data: {
+            postId,
+            userId: auth.id,
+            type: reactionType,
+        },
+    });
+
+    return res.json({
+        reaction: createdReaction.type,
+    });
 }
 
 export async function commentOnPost(req: AuthenticatedRequest, res: Response) {
     const auth = req.auth;
-    if(!auth) {
+    if (!auth) {
         return res.status(401).json({ message: "Unauthorized" });
     }
     const postId = getSingleString(req.params.id);
@@ -232,7 +248,7 @@ export async function commentOnPost(req: AuthenticatedRequest, res: Response) {
 
 export async function getCommentsForPost(req: AuthenticatedRequest, res: Response) {
     const auth = req.auth;
-    if(!auth) {
+    if (!auth) {
         return res.status(401).json({ message: "Unauthorized" });
     }
     const postId = getSingleString(req.params.id);
@@ -272,7 +288,7 @@ export async function getCommentsForPost(req: AuthenticatedRequest, res: Respons
 
 export async function deleteComment(req: AuthenticatedRequest, res: Response) {
     const auth = req.auth;
-    if(!auth) {
+    if (!auth) {
         return res.status(401).json({ message: "Unauthorized" });
     }
     const commentId = getSingleString(req.params.commentId);
@@ -292,7 +308,7 @@ export async function deleteComment(req: AuthenticatedRequest, res: Response) {
 
 export async function getReactOfPost(req: AuthenticatedRequest, res: Response) {
     const auth = req.auth;
-    if(!auth) {
+    if (!auth) {
         return res.status(401).json({ message: "Unauthorized" });
     }
     const postId = getSingleString(req.params.id);

@@ -27,6 +27,7 @@ export function Profile({ username }: { username: string }) {
   const [error, setError] = useState<string | null>(null);
   const [selectedPost, setSelectedPost] = useState<FeedPost | null>(null);
   const [activeTab, setActiveTab] = useState<"posts" | "thoughts">("posts");
+  const router = useRouter();
   const { user: authUser } = useAuth();
   const [friendshipStatus, setFriendshipStatus] =
     useState<FriendshipStatusType>("none");
@@ -126,7 +127,6 @@ export function Profile({ username }: { username: string }) {
       console.error(err);
     }
   };
-  const router = useRouter();
   const handleFriendsClick = () => {
     if (!isOwnProfile) return;
     router.push("/home/friends");
