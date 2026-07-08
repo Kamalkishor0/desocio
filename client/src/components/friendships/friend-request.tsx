@@ -58,7 +58,17 @@ export function FriendRequests() {
       console.error(error);
     }
   }
+  async function handleCancel(receiverId: string) {
+    try {
+      await api.cancelFriendRequest(receiverId);
 
+      setSent((current) =>
+        current.filter((request) => request.receiver?.id !== receiverId)
+      );
+    } catch (error) {
+      console.error(error);
+    }
+  }
   if (loading) {
     return (
       <div className="rounded-3xl border border-slate-800 bg-slate-900/60 p-6 text-center text-slate-400">
@@ -75,11 +85,10 @@ export function FriendRequests() {
         <button
           type="button"
           onClick={() => setMode("received")}
-          className={`rounded-full px-4 py-2 transition ${
-            mode === "received"
+          className={`rounded-full px-4 py-2 transition ${mode === "received"
               ? "bg-white text-slate-950"
               : "text-slate-300"
-          }`}
+            }`}
         >
           Received ({received.length})
         </button>
@@ -87,11 +96,10 @@ export function FriendRequests() {
         <button
           type="button"
           onClick={() => setMode("sent")}
-          className={`rounded-full px-4 py-2 transition ${
-            mode === "sent"
+          className={`rounded-full px-4 py-2 transition ${mode === "sent"
               ? "bg-white text-slate-950"
               : "text-slate-300"
-          }`}
+            }`}
         >
           Sent ({sent.length})
         </button>
@@ -112,6 +120,7 @@ export function FriendRequests() {
               type={mode}
               onAccept={handleAccept}
               onReject={handleReject}
+              onCancel={handleCancel}
             />
           ))}
         </div>

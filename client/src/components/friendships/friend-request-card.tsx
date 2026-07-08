@@ -1,6 +1,6 @@
 "use client";
 
-import {useRouter} from "next/navigation";
+import { useRouter } from "next/navigation";
 import { resolveMediaUrl } from "@/lib/media";
 import type { FriendRequest } from "@/lib/api/friends";
 
@@ -9,6 +9,7 @@ type FriendRequestCardProps = {
   type: "received" | "sent";
   onAccept?: (senderId: string) => void;
   onReject?: (senderId: string) => void;
+  onCancel?: (receiverId: string) => void;
 };
 
 export function FriendRequestCard({
@@ -16,6 +17,7 @@ export function FriendRequestCard({
   type,
   onAccept,
   onReject,
+  onCancel,
 }: FriendRequestCardProps) {
   const user = type === "received" ? request.sender : request.receiver;
 
@@ -64,9 +66,13 @@ export function FriendRequestCard({
           </button>
         </div>
       ) : (
-        <span className="rounded-full border border-slate-700 px-4 py-2 text-sm text-slate-300">
-          Request Sent
-        </span>
+        <button
+          type="button"
+          onClick={() => onCancel?.(user.id)}
+          className="rounded-full border border-slate-700 bg-slate-800 px-4 py-2 text-sm text-slate-200 transition hover:border-red-500 hover:bg-red-500/10 hover:text-red-400"
+        >
+          Cancel Request
+        </button>
       )}
     </div>
   );
