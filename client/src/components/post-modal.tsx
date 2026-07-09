@@ -18,6 +18,7 @@ type PostModalProps = {
   post: FeedPost;
   author: PostAuthor;
   onClose: () => void;
+  onReactionChange?: (reaction: PostReactionType | null) => void;
 };
 
 const REACTIONS: Array<{
@@ -30,7 +31,7 @@ const REACTIONS: Array<{
   { type: "laugh", label: "Laugh", Icon: Laugh },
 ];
 
-export function PostModal({ post, author, onClose }: PostModalProps) {
+export function PostModal({ post, author, onClose, onReactionChange }: PostModalProps) {
   const [reaction, setReaction] = useState<PostReactionType | null>(null);
   const [comments, setComments] = useState<PostComment[]>([]);
   const [commentText, setCommentText] = useState("");
@@ -113,9 +114,11 @@ export function PostModal({ post, author, onClose }: PostModalProps) {
     try {
       const result = await postApi.react(post.id, type);
       setReaction(result.reaction);
+      onReactionChange?.(result.reaction);
     } catch (error) {
       console.error("Failed to react:", error);
       setReaction(previous);
+      onReactionChange?.(previous);
     }
   }
 

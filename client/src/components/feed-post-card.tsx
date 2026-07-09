@@ -175,8 +175,8 @@ export function FeedPostCard({ post }: Props) {
                                     key={type}
                                     onClick={() => toggleReaction(type)}
                                     className={`rounded-full border p-2 transition ${active
-                                            ? "border-blue-500 bg-blue-500/10 text-blue-400"
-                                            : "border-slate-700 text-slate-300 hover:bg-slate-800"
+                                        ? "border-blue-500 bg-blue-500/10 text-blue-400"
+                                        : "border-slate-700 text-slate-300 hover:bg-slate-800"
                                         }`}
                                 >
                                     <Icon size={18} />
@@ -213,6 +213,7 @@ export function FeedPostCard({ post }: Props) {
                     post={post}
                     author={post.author}
                     onClose={() => setModalOpen(false)}
+                    onReactionChange={setReaction}
                 />
             )}
         </>

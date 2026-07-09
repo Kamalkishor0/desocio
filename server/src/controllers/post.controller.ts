@@ -315,7 +315,6 @@ export async function getReactOfPost(req: AuthenticatedRequest, res: Response) {
     if (!postId) {
         return res.status(400).json({ message: "Invalid post id" });
     }
-
     const post = await prisma.post.findUnique({
         where: { id: postId },
     });
@@ -323,7 +322,11 @@ export async function getReactOfPost(req: AuthenticatedRequest, res: Response) {
         return res.status(404).json({ message: "Post not found" });
     }
     if (post.authorId !== auth.id) {
-        return res.status(404).json({ message: "Post not found" });
+        const isFriends = await areTheyFriends(auth.id, post.authorId);
+
+        if (!isFriends || post.visibility !== PostVisibility.friends) {
+            return res.status(404).json({ message: "Post not found" });
+        }
     }
 
     const reaction = await prisma.postReaction.findFirst({
