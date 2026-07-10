@@ -1,9 +1,14 @@
 import "dotenv/config";
+const PORT = Number(process.env.PORT) || 3000;
+
+import http from "http";
 import app from "./src/app";
-import prisma from "./src/config/db";
-const PORT = process.env.PORT || 3000;
+import { initializeSocket } from "./src/socket";
 
+const server = http.createServer(app);
 
-app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+initializeSocket(server);
+
+server.listen(PORT, () => {
+    console.log(`Server running on ${PORT}`);
 });

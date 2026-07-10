@@ -46,9 +46,15 @@ enum PostReactionType {
   laugh
 }
 
+enum MessageStatus {
+  sent
+  delivered
+  read
+}
+
 model User {
-  id String @id @default(cuid())
-  name String @db.VarChar(100)
+  id       String @id @default(cuid())
+  name     String @db.VarChar(100)
   username String @unique @db.VarChar(30)
 
   email        String @unique @db.VarChar(255)
@@ -70,17 +76,20 @@ model User {
   userAFriendships Friendship[] @relation("UserAFriendships")
   userBFriendships Friendship[] @relation("UserBFriendships")
 
-  refreshTokens     RefreshToken[]
-  posts             Post[]
-  thoughts          Thought[]
-  postComments      PostComment[]
-  thoughtComments   ThoughtComment[]
-  postReactions     PostReaction[]
-  savedThoughts     SavedThought[]
-  supportedThoughts ThoughtSupport[]
-  thoughtReports    ThoughtReport[]
+  refreshTokens                  RefreshToken[]
+  posts                          Post[]
+  thoughts                       Thought[]
+  postComments                   PostComment[]
+  thoughtComments                ThoughtComment[]
+  postReactions                  PostReaction[]
+  savedThoughts                  SavedThought[]
+  supportedThoughts              ThoughtSupport[]
+  thoughtReports                 ThoughtReport[]
   ownedFriendshipInteractions    FriendshipInteraction[] @relation("InteractionOwner")
   targetedFriendshipInteractions FriendshipInteraction[] @relation("InteractionTarget")
+
+  sentMessages             Message[]
+  conversationParticipants ConversationParticipant[]
 
   @@map("users")
 }
@@ -225,17 +234,17 @@ model ThoughtSupport {
 }
 
 model PostComment {
-  id        String   @id @default(cuid())
+  id        String        @id @default(cuid())
   authorId  String
-  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  author    User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
   postId    String
-  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  post      Post          @relation(fields: [postId], references: [id], onDelete: Cascade)
   parentId  String?
   parent    PostComment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
   replies   PostComment[] @relation("CommentReplies")
-  text      String   @db.VarChar(500)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  text      String        @db.VarChar(500)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
 
   @@index([authorId, createdAt])
   @@index([postId, createdAt])
@@ -299,4 +308,55 @@ model ThoughtReport {
   @@index([thoughtId, createdAt])
   @@index([reporterId, createdAt])
   @@map("thought_reports")
+}
+
+model Conversation {
+  id String @id @default(cuid())
+
+  conversationKey String @unique @map("conversation_key")
+
+  participants ConversationParticipant[]
+  messages     Message[]
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  lastMessageAt DateTime @default(now()) @map("last_message_at")
+
+  @@index([lastMessageAt(sort: Desc)])
+  @@map("conversations")
+}
+
+model ConversationParticipant {
+  id String @id @default(cuid())
+
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  userId            String
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lastReadMessageId String?  @map("last_read_message_id")
+  joinedAt          DateTime @default(now())
+
+  @@unique([conversationId, userId])
+  @@index([userId])
+  @@map("conversation_participants")
+}
+
+model Message {
+  id String @id @default(cuid())
+
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  senderId String
+  sender   User   @relation(fields: [senderId], references: [id], onDelete: Cascade)
+
+  status    MessageStatus @default(sent)
+  content   String        @db.VarChar(2000)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  @@index([conversationId, createdAt(sort: Desc), id(sort: Desc)])
+  @@index([senderId, createdAt])
+  @@map("messages")
 }
