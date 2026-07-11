@@ -2,27 +2,14 @@ import { Response } from "express";
 import { PostVisibility } from "@prisma/client";
 import prisma from "../config/db";
 import { AuthenticatedRequest } from "../types/auth";
+import { createFeedCursor, parseFeedCursor } from "../utils/cursor";
+
+import {
+    getPaginationLimit,
+} from "../utils/pagination";
 
 function getSingleString(value: unknown): string | undefined {
     return typeof value === "string" ? value : undefined;
-}
-
-function parseCursor(value: string | undefined): { createdAt: Date; id: string } | undefined {
-    if (!value) {
-        return undefined;
-    }
-
-    const [createdAtRaw, id] = value.split("|");
-    if (!createdAtRaw || !id) {
-        return undefined;
-    }
-
-    const createdAt = new Date(createdAtRaw);
-    if (Number.isNaN(createdAt.getTime())) {
-        return undefined;
-    }
-
-    return { createdAt, id };
 }
 
 export async function getPrivateFeed(req: AuthenticatedRequest, res: Response) {
@@ -32,8 +19,8 @@ export async function getPrivateFeed(req: AuthenticatedRequest, res: Response) {
     }
 
     const { cursor, limit } = req.query as { cursor?: string; limit?: string };
-    const cursorValue = parseCursor(getSingleString(cursor));
-    const limitNumber = Math.min(50, Math.max(1, Number.parseInt(limit ?? "20", 10) || 20));
+    const cursorValue = parseFeedCursor(getSingleString(cursor));
+    const limitNumber = getPaginationLimit(limit);
 
     const friendships = await prisma.friendship.findMany({
         where: {
@@ -90,9 +77,16 @@ export async function getPrivateFeed(req: AuthenticatedRequest, res: Response) {
     });
 
     const hasMore = posts.length > limitNumber;
-    const pagedPosts = hasMore ? posts.slice(0, limitNumber) : posts;
+
+    const pagedPosts = hasMore
+        ? posts.slice(0, limitNumber)
+        : posts;
+
     const nextCursor = hasMore
-        ? `${pagedPosts[pagedPosts.length - 1].createdAt.toISOString()}|${pagedPosts[pagedPosts.length - 1].id}`
+        ? createFeedCursor(
+            pagedPosts[pagedPosts.length - 1].createdAt,
+            pagedPosts[pagedPosts.length - 1].id
+        )
         : null;
 
     const data = pagedPosts.map((post) => ({

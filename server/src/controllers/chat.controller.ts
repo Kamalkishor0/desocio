@@ -2,7 +2,9 @@ import { Response } from "express";
 import prisma from "../config/db";
 import { AuthenticatedRequest } from "../types/auth";
 import { generateConversationKey } from "../utils/chat";
-import { mapConversation } from "../utils/chatResponse";
+import { mapConversation, mapConversationListItem } from "../utils/chat.mapper";
+import { createCursorPage,getPaginationLimit } from "../utils/pagination";
+import { mapMessage } from "../utils/chat.mapper";
 
 export async function openConversation(
     req: AuthenticatedRequest,
@@ -132,4 +134,137 @@ export async function openConversation(
     return res.status(201).json(
         mapConversation(conversation, auth.id)
     );
+}
+
+export async function getConversations(
+    req: AuthenticatedRequest,
+    res: Response
+) {
+    const auth = req.auth;
+
+    if (!auth) {
+        return res.status(401).json({
+            message: "Unauthorized",
+        });
+    }
+
+    const conversations = await prisma.conversation.findMany({
+        where: {
+            participants: {
+                some: {
+                    userId: auth.id,
+                },
+            },
+        },
+        orderBy: {
+            lastMessageAt: "desc",
+        },
+        include: {
+            participants: {
+                include: {
+                    user: {
+                        select: {
+                            id: true,
+                            name: true,
+                            username: true,
+                            profilePictureUrl: true,
+                        },
+                    },
+                },
+            },
+            messages: {
+                orderBy: {
+                    createdAt: "desc",
+                },
+                take: 1,
+            },
+        },
+    });
+
+    const data = conversations.map((conversation) =>
+        mapConversationListItem(conversation, auth.id)
+    );
+
+    return res.json(data);
+}
+
+export async function getMessages(
+    req: AuthenticatedRequest,
+    res: Response
+) {
+    const auth = req.auth;
+
+    if (!auth) {
+        return res.status(401).json({
+            message: "Unauthorized",
+        });
+    }
+
+    const conversationId = Array.isArray(req.params.conversationId)
+        ? req.params.conversationId[0]
+        : req.params.conversationId;
+
+    if (!conversationId) {
+        return res.status(400).json({
+            message: "Conversation ID is required",
+        });
+    }
+
+    const limit = getPaginationLimit(req.query.limit);
+
+    const cursor =
+        typeof req.query.cursor === "string"
+            ? req.query.cursor
+            : undefined;
+
+    const conversation = await prisma.conversation.findFirst({
+        where: {
+            id: conversationId,
+            participants: {
+                some: {
+                    userId: auth.id,
+                },
+            },
+        },
+        select: {
+            id: true,
+        },
+    });
+
+    if (!conversation) {
+        return res.status(404).json({
+            message: "Conversation not found",
+        });
+    }
+
+    const messages = await prisma.message.findMany({
+        where: {
+            conversationId,
+        },
+        orderBy: [
+            {
+                createdAt: "desc",
+            },
+            {
+                id: "desc",
+            },
+        ],
+        take: limit + 1,
+        ...(cursor && {
+            cursor: {
+                id: cursor,
+            },
+            skip: 1,
+        }),
+    });
+
+    const page = createCursorPage(messages, limit);
+
+    page.data.reverse();
+
+    return res.json({
+        data: page.data.map(mapMessage),
+        nextCursor: page.nextCursor,
+        hasMore: page.hasMore,
+    });
 }
