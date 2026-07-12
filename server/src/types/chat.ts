@@ -46,3 +46,22 @@ export interface MessagesResponse {
     nextCursor: string | null;
     hasMore: boolean;
 }
+export interface OpenConversationInput {
+    currentUserId: string;
+    targetUserId: string;
+}
+export interface GetMessagesInput {
+    currentUserId: string;
+    conversationId: string;
+    cursor?: string;
+    limit: number;
+};
+export interface ValidateConversationInput {
+    currentUserId: string;
+    conversationId: string;
+};
+export interface SendMessageInput {
+    currentUserId: string;
+    conversationId: string;
+    content: string;
+};
