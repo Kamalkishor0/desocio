@@ -265,3 +265,18 @@ export async function sendMessage({
 
     return mapMessage(message);
 }
+
+type JoinConversationInput = {
+    currentUserId: string;
+    conversationId: string;
+};
+
+export async function joinConversation({
+    currentUserId,
+    conversationId,
+}: JoinConversationInput): Promise<void> {
+    await validateConversation({
+        currentUserId,
+        conversationId,
+    });
+}
