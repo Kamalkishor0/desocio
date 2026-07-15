@@ -1,11 +1,15 @@
 import { Router } from "express";
 import { authMiddleware } from "../middlewares/auth.middleware";
-import * as chatController from "../controllers/chat.controller";
-import {asyncHandler} from "../utils/asyncHandler";
+import {
+	getConversations,
+	getMessages,
+	openConversation,
+	sendMessage,
+} from "../controllers/chat.controller";
 const router = Router();
 
-router.post("/conversations/:userId", authMiddleware, asyncHandler(chatController.openConversation));
-router.get("/conversations",authMiddleware,chatController.getConversations);
-router.get("/conversations/:conversationId/messages",authMiddleware,chatController.getMessages);
-router.post("/conversations/:conversationId/messages",authMiddleware,asyncHandler(chatController.sendMessage));
+router.post("/conversations/:userId", authMiddleware, openConversation);
+router.get("/conversations", authMiddleware, getConversations);
+router.get("/conversations/:conversationId/messages", authMiddleware, getMessages);
+router.post("/conversations/:conversationId/messages", authMiddleware, sendMessage);
 export default router;

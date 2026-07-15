@@ -69,6 +69,23 @@ export async function getMessages(
     return res.json(messages);
 }
 
+export async function getConversations(
+    req: AuthenticatedRequest,
+    res: Response
+) {
+    const auth = req.auth;
+
+    if (!auth) {
+        return res.status(401).json({
+            message: "Unauthorized",
+        });
+    }
+
+    const conversations = await chatService.getConversations(auth.id);
+
+    return res.json(conversations);
+}
+
 export async function sendMessage(
     req: AuthenticatedRequest,
     res: Response

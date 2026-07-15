@@ -11,6 +11,8 @@ import { NotFound } from "../not-found";
 import { useAuth } from "@/context/AuthContext";
 import type { FriendshipStatusType } from "@/constants/friendships";
 import { useRouter } from "next/navigation";
+import { chatApi } from "@/lib/api/chat";
+import { MessageCircle } from "lucide-react";
 
 function initialFor(user: AuthUser): string {
   const source = user.name || user.username || "?";
@@ -131,6 +133,17 @@ export function Profile({ username }: { username: string }) {
     if (!isOwnProfile) return;
     router.push("/home/friends");
   };
+  const handleMessage = async () => {
+    if (!user) return;
+
+    try {
+      const conversation = await chatApi.openConversation(user.id);
+
+      router.push(`/home/chat/${conversation.id}`);
+    } catch (err) {
+      console.error(err);
+    }
+  };
   return (
     <div className="mx-auto w-full max-w-2xl space-y-6 p-6">
       <section className="glass rounded-3xl bg-slate-900/60 p-6 shadow-2xl shadow-slate-950/40 md:p-8">
@@ -202,13 +215,24 @@ export function Profile({ username }: { username: string }) {
               )}
 
               {friendshipStatus === "friends" && (
-                <button
-                  type="button"
-                  disabled
-                  className="shrink-0 cursor-default rounded-full border border-slate-700 bg-transparent px-5 py-2 text-sm font-medium text-slate-300"
-                >
-                  Friends
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    disabled
+                    className="shrink-0 cursor-default rounded-full border border-slate-700 bg-transparent px-5 py-2 text-sm font-medium text-slate-300"
+                  >
+                    Friends
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleMessage}
+                    className="flex items-center gap-2 rounded-full bg-blue-600 px-5 py-2 text-sm font-medium text-white transition hover:bg-blue-700"
+                  >
+                    <MessageCircle size={18} />
+                    Message
+                  </button>
+                </div>
               )}
             </>
           )}

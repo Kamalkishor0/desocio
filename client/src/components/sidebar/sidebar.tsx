@@ -31,7 +31,7 @@ export function Sidebar({ expanded }: SidebarProps) {
         break;
   
       case "messages":
-        router.push("/home/messages");
+        router.push("/home/chat");
         break;
 
       case "notifications":
