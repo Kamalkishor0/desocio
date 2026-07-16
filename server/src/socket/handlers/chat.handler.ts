@@ -39,24 +39,28 @@ export function registerChatHandlers(
     );
 
     socket.on(
-        "chat:join",
-        async ({ conversationId }: JoinConversationPayload) => {
-            try {
-                await chatService.joinConversation({
-                    currentUserId: socket.data.user.id,
-                    conversationId,
-                });
+    "chat:join",
+    async ({ conversationId }: JoinConversationPayload) => {
+        try {
+            console.log("JOIN EVENT:", conversationId);
 
-                await socket.join(conversationId);
+            await chatService.joinConversation({
+                currentUserId: socket.data.user.id,
+                conversationId,
+            });
 
-                socket.emit("chat:joined", {
-                    conversationId,
-                });
-            } catch (error) {
-                emitSocketError(socket, error);
-            }
+            socket.join(conversationId);
+
+            console.log("ROOMS:", [...socket.rooms]);
+
+            socket.emit("chat:joined", {
+                conversationId,
+            });
+        } catch (error) {
+            emitSocketError(socket, error);
         }
-    );
+    }
+);
 
     socket.on(
         "chat:leave",
@@ -72,13 +76,18 @@ export function registerChatHandlers(
     socket.on(
         "chat:send-message",
         async ({ conversationId, content }: SendMessagePayload) => {
+            console.log(
+      "Received socket message:",
+      conversationId,
+      content
+    );
             try {
                 const message = await chatService.sendMessage({
                     currentUserId: socket.data.user.id,
                     conversationId,
                     content,
                 });
-
+                console.log("Broadcasting:", message);
                 io.to(conversationId).emit(
                     "chat:new-message",
                     message

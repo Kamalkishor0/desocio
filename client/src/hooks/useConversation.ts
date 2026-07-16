@@ -17,25 +17,9 @@ export function useConversation(conversationId: string) {
         setLoading(true);
         setMessages([]);
 
-        async function load() {
-            try {
-                const response = await chatApi.getMessages(conversationId);
-
-                if (!active) return;
-
-                setMessages(response.data);
-
-                socket.emit("chat:join", {
-                    conversationId,
-                });
-            } finally {
-                if (active) {
-                    setLoading(false);
-                }
-            }
-        }
-
         function handleNewMessage(message: MessageResponse) {
+            console.log("Received new message:", message);
+
             setMessages((prev) => {
                 if (prev.some((m) => m.id === message.id)) {
                     return prev;
@@ -45,9 +29,37 @@ export function useConversation(conversationId: string) {
             });
         }
 
-        load();
+        function joinConversation() {
+            console.log("Joining room:", conversationId);
+
+            socket.emit("chat:join", {
+                conversationId,
+            });
+        }
+
+        async function load() {
+            try {
+                const response = await chatApi.getMessages(conversationId);
+
+                if (!active) return;
+
+                setMessages(response.data);
+
+                if (socket.connected) {
+                    joinConversation();
+                } else {
+                    socket.once("connect", joinConversation);
+                }
+            } finally {
+                if (active) {
+                    setLoading(false);
+                }
+            }
+        }
 
         socket.on("chat:new-message", handleNewMessage);
+
+        load();
 
         return () => {
             active = false;
@@ -57,10 +69,16 @@ export function useConversation(conversationId: string) {
             });
 
             socket.off("chat:new-message", handleNewMessage);
+            socket.off("connect", joinConversation);
         };
     }, [conversationId, socket]);
 
     async function sendMessage(content: string): Promise<void> {
+        console.log("Sending socket message", {
+            conversationId,
+            content,
+        });
+
         socket.emit("chat:send-message", {
             conversationId,
             content,

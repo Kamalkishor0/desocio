@@ -1,6 +1,6 @@
 "use client";
 
-import { SocketProvider } from "@/lib/socket-provider";
+import { SocketProvider } from "@/context/SocketContext";
 import { AuthProvider } from "@/context/AuthContext";
 import type { AuthUser } from "@/types/auth";
 
