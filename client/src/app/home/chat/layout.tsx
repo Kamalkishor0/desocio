@@ -6,10 +6,12 @@ export default function ChatLayout({
     children: React.ReactNode;
 }) {
     return (
-        <div className="grid h-full grid-cols-[clamp(18rem,28vw,24rem)_1fr]">
-            <ConversationList />
+        <div className="grid h-full min-h-0 grid-cols-[clamp(18rem,28vw,24rem)_1fr] overflow-hidden">
+            <aside className="slim-scrollbar min-h-0 overflow-y-auto border-r border-white/10">
+                <ConversationList />
+            </aside>
 
-            <div className="border-l border-white/10">
+            <div className="min-h-0 overflow-hidden">
                 {children}
             </div>
         </div>

@@ -75,7 +75,7 @@ export function FeedPostCard({ post }: Props) {
 
     return (
         <>
-            <article className="w-full overflow-hidden rounded-2xl border border-slate-800 bg-slate-900">
+            <article className="w-full overflow-hidden rounded-2xl border border-slate-800">
 
                 <div className="flex items-center gap-3 p-4">
 

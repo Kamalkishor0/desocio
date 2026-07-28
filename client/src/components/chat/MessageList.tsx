@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import type { MessageResponse } from "@/types/chat";
 import { MessageBubble } from "./MessageBubble";
 
@@ -12,8 +13,17 @@ export function MessageList({
   messages,
   currentUserId,
 }: Props) {
+  const scrollAnchorRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    scrollAnchorRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "end",
+    });
+  }, [messages]);
+
   return (
-    <div className="flex-1 space-y-3 overflow-y-auto p-6">
+    <div className="slim-scrollbar flex-1 min-h-0 space-y-3 overflow-y-auto p-6">
       {messages.map((message) => (
         <MessageBubble
           key={message.id}
@@ -21,6 +31,7 @@ export function MessageList({
           isOwnMessage={message.senderId === currentUserId}
         />
       ))}
+      <div ref={scrollAnchorRef} />
     </div>
   );
 }

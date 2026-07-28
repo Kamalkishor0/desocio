@@ -21,14 +21,14 @@ export function ChatWindow({
 
   if (loading) {
     return (
-      <div className="flex h-full items-center justify-center">
+      <div className="flex h-full min-h-0 items-center justify-center">
         Loading...
       </div>
     );
   }
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="flex h-full min-h-0 flex-col overflow-hidden">
       <MessageList
         messages={messages}
         currentUserId={user?.id ?? null}

@@ -38,14 +38,14 @@ export function ConversationList() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center">
+      <div className="flex h-full min-h-0 items-center justify-center">
         Loading...
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col">
+    <div className="flex min-h-0 flex-col">
       {conversations.map((conversation) => (
         <ConversationCard
           key={conversation.id}
