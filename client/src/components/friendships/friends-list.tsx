@@ -65,7 +65,7 @@ export function FriendsList() {
 
   if (loading) {
     return (
-      <div className="mx-auto w-full max-w-2xl p-6 text-slate-400">
+      <div className="mx-auto w-full max-w-2xl p-6 text-gray-400">
         Loading friends...
       </div>
     );
@@ -79,13 +79,13 @@ export function FriendsList() {
 
   return (
     <div className="mx-auto w-full max-w-2xl space-y-6 p-6">
-      <section className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
+      <section className="rounded-2xl border border-gray-700 bg-[#080809] p-6">
         <h1 className="mb-4 text-xl font-semibold text-white">
           Friends ({friends.length})
         </h1>
 
         {friends.length === 0 ? (
-          <p className="text-slate-500">No friends yet.</p>
+          <p className="text-gray-500">No friends yet.</p>
         ) : (
           <ul className="space-y-3">
             {friends.map((friend) => {
@@ -97,17 +97,17 @@ export function FriendsList() {
                 <li
                   key={friend.id}
                   onClick={() => handleRedirect(friend.username)}
-                  className="flex cursor-pointer items-center justify-between rounded-2xl border border-slate-800 bg-slate-950 px-4 py-3 transition hover:border-slate-700 hover:bg-slate-900"
+                  className="flex cursor-pointer items-center justify-between rounded-2xl border border-gray-700 bg-[#080809] px-4 py-3 transition hover:border-gray-500 hover:bg-[#080809]"
                 >
                   <div className="flex min-w-0 items-center gap-3">
                     {friendAvatar ? (
                       <img
                         src={friendAvatar}
                         alt={friend.username}
-                        className="h-11 w-11 rounded-full border border-slate-700 object-cover"
+                        className="h-11 w-11 rounded-full border border-gray-700 object-cover"
                       />
                     ) : (
-                      <div className="flex h-11 w-11 items-center justify-center rounded-full border border-slate-700 bg-slate-800 text-sm font-semibold text-white">
+                      <div className="flex h-11 w-11 items-center justify-center rounded-full border border-gray-700 bg-[#080809] text-sm font-semibold text-white">
                         {friend.username.charAt(0).toUpperCase()}
                       </div>
                     )}
@@ -116,7 +116,7 @@ export function FriendsList() {
                       <p className="truncate font-medium text-white">
                         {friend.name}
                       </p>
-                      <p className="truncate text-sm text-slate-400">
+                      <p className="truncate text-sm text-gray-400">
                         @{friend.username}
                       </p>
                     </div>
@@ -140,7 +140,7 @@ export function FriendsList() {
                         type="button"
                         onClick={() => setConfirmingId(null)}
                         disabled={isRemoving}
-                        className="rounded-full border border-slate-700 px-3 py-1 text-xs text-slate-300 transition hover:bg-slate-800"
+                        className="rounded-full border border-gray-700 px-3 py-1 text-xs text-gray-300 transition hover:bg-[#080809]"
                       >
                         Cancel
                       </button>
@@ -152,7 +152,7 @@ export function FriendsList() {
                         e.stopPropagation();
                         setConfirmingId(friend.id);
                       }}
-                      className="rounded-full p-2 text-slate-500 transition hover:bg-red-500/10 hover:text-red-400"
+                      className="rounded-full p-2 text-gray-500 transition hover:bg-[#080809] hover:text-white"
                       title="Remove friend"
                     >
                       <UserX size={16} />

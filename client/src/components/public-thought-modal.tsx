@@ -195,7 +195,7 @@ export function PublicThoughtModal({ thought, onClose }: Props) {
 
     return (
       <li key={comment.id} className={isReply ? "ml-8" : undefined}>
-        <div className="flex gap-2.5 rounded-xl border border-slate-800 bg-slate-950/60 p-3">
+        <div className="flex gap-2.5 rounded-xl border border-gray-700 bg-[#080809] p-3">
           {replyAvatar ? (
             <img
               src={replyAvatar}
@@ -203,19 +203,19 @@ export function PublicThoughtModal({ thought, onClose }: Props) {
               className="h-7 w-7 shrink-0 rounded-full object-cover"
             />
           ) : (
-            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-slate-800 text-[11px] font-semibold text-white">
+            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gray-800 text-[11px] font-semibold text-white">
               {comment.author.username.charAt(0).toUpperCase()}
             </div>
           )}
 
           <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2 text-xs text-slate-400">
+            <div className="flex items-center gap-2 text-xs text-gray-400">
               <span className="font-semibold text-white">{comment.author.name}</span>
               <span className="truncate">@{comment.author.username}</span>
               <span>•</span>
               <span>{formatDate(comment.createdAt)}</span>
             </div>
-            <p className="mt-1.5 whitespace-pre-wrap text-sm text-slate-200">
+            <p className="mt-1.5 whitespace-pre-wrap text-sm text-gray-200">
               {comment.text}
             </p>
 
@@ -223,7 +223,7 @@ export function PublicThoughtModal({ thought, onClose }: Props) {
               <button
                 type="button"
                 onClick={() => startReply(comment)}
-                className="mt-2 text-xs font-medium text-slate-400 transition hover:text-white"
+                className="mt-2 text-xs font-medium text-gray-400 transition hover:text-white"
               >
                 Reply
               </button>
@@ -246,20 +246,20 @@ export function PublicThoughtModal({ thought, onClose }: Props) {
       onClick={onClose}
     >
       <div
-        className="flex h-[85vh] max-h-[90vh] w-full max-w-4xl flex-col overflow-hidden rounded-2xl border border-slate-800 bg-slate-900 md:flex-row"
+        className="flex h-[85vh] max-h-[90vh] w-full max-w-4xl flex-col overflow-hidden rounded-2xl border border-gray-700 bg-[#080809] md:flex-row"
         onClick={(event) => event.stopPropagation()}
       >
         <div className="flex min-h-0 flex-1 flex-col md:w-[55%]">
-          <div className="flex items-start justify-between gap-3 border-b border-slate-800 p-4">
+          <div className="flex items-start justify-between gap-3 border-b border-gray-700 p-4">
             <div className="flex min-w-0 gap-3">
               {commentAvatar ? (
                 <img
                   src={commentAvatar}
                   alt={thought.author.username}
-                  className="h-10 w-10 shrink-0 rounded-full border border-slate-700 object-cover"
+                  className="h-10 w-10 shrink-0 rounded-full border border-gray-700 object-cover"
                 />
               ) : (
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-slate-700 bg-slate-800 text-sm font-semibold text-white">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-gray-700 bg-[#080809] text-sm font-semibold text-white">
                   {initialFor(thought)}
                 </div>
               )}
@@ -268,8 +268,8 @@ export function PublicThoughtModal({ thought, onClose }: Props) {
                 <p className="truncate font-semibold text-white">
                   {currentThought.author.name}
                 </p>
-                <p className="text-sm text-slate-400">@{currentThought.author.username}</p>
-                <p className="mt-1 text-xs text-slate-500">
+                <p className="text-sm text-gray-400">@{currentThought.author.username}</p>
+                <p className="mt-1 text-xs text-gray-500">
                   {formatDate(currentThought.createdAt)}
                 </p>
               </div>
@@ -279,7 +279,7 @@ export function PublicThoughtModal({ thought, onClose }: Props) {
               type="button"
               onClick={onClose}
               aria-label="Close"
-              className="shrink-0 rounded-full p-1 text-slate-400 transition hover:bg-slate-800 hover:text-white"
+              className="shrink-0 rounded-full p-1 text-gray-400 transition hover:bg-[#080809] hover:text-white"
             >
               <X size={20} />
             </button>
@@ -288,12 +288,12 @@ export function PublicThoughtModal({ thought, onClose }: Props) {
           <div className="slim-scrollbar min-h-0 flex-1 space-y-3 overflow-y-auto p-4 md:max-h-[42vh]">
             {loading ? (
               <div className="animate-pulse space-y-3">
-                <div className="h-4 w-2/3 rounded bg-slate-800" />
-                <div className="h-4 w-full rounded bg-slate-800" />
-                <div className="h-4 w-5/6 rounded bg-slate-800" />
+                <div className="h-4 w-2/3 rounded bg-[#080809]" />
+                <div className="h-4 w-full rounded bg-[#080809]" />
+                <div className="h-4 w-5/6 rounded bg-[#080809]" />
               </div>
             ) : comments.length === 0 ? (
-              <p className="text-sm text-slate-500">No comments yet.</p>
+              <p className="text-sm text-gray-500">No comments yet.</p>
             ) : (
               <ul className="space-y-3">
                 {comments.map((comment) => renderComment(comment))}
@@ -301,15 +301,15 @@ export function PublicThoughtModal({ thought, onClose }: Props) {
             )}
           </div>
 
-          <div className="border-t border-slate-800 p-4">
+          <div className="border-t border-gray-700 p-4">
             <div className="flex flex-wrap items-center gap-2">
               <button
                 type="button"
                 onClick={toggleSupport}
                 disabled={togglingSupport}
                 className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm transition ${isSupported
-                  ? "border-blue-500 bg-blue-500/10 text-blue-400"
-                  : "border-slate-700 text-slate-300 hover:bg-slate-800"
+                  ? "border-gray-500 bg-[#080809] text-white"
+                  : "border-gray-700 text-gray-300 hover:bg-[#080809]"
                   }`}
               >
                 <ThumbsUp size={18} />
@@ -321,15 +321,15 @@ export function PublicThoughtModal({ thought, onClose }: Props) {
                 onClick={toggleSave}
                 disabled={togglingSave}
                 className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm transition ${isSaved
-                  ? "border-emerald-500 bg-emerald-500/10 text-emerald-300"
-                  : "border-slate-700 text-slate-300 hover:bg-slate-800"
+                  ? "border-gray-500 bg-[#080809] text-white"
+                  : "border-gray-700 text-gray-300 hover:bg-[#080809]"
                   }`}
               >
                 <Bookmark size={18} />
                 Save
               </button>
 
-              <span className="inline-flex items-center gap-2 rounded-full border border-slate-700 px-4 py-2 text-sm text-slate-300">
+              <span className="inline-flex items-center gap-2 rounded-full border border-gray-700 px-4 py-2 text-sm text-gray-300">
                 <MessageCircle size={18} />
                 Comments
               </span>
@@ -346,48 +346,48 @@ export function PublicThoughtModal({ thought, onClose }: Props) {
                     ? `Reply to @${replyTo.username}...`
                     : "Add a comment..."
                 }
-                className="flex-1 rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white placeholder:text-slate-500 outline-none focus:border-blue-500"
+                className="flex-1 rounded-xl border border-gray-700 bg-[#080809] px-3 py-2 text-sm text-white placeholder:text-gray-500 outline-none focus:border-gray-500"
               />
               <button
                 type="submit"
                 disabled={submittingComment || !commentText.trim()}
                 aria-label="Post comment"
-                className="rounded-xl bg-blue-600 p-2 text-white transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-60"
+                className="rounded-xl bg-[#080809] p-2 text-white transition hover:bg-[#080809] disabled:cursor-not-allowed disabled:opacity-60"
               >
                 <Send size={18} />
               </button>
             </form>
 
             {replyTo ? (
-              <div className="mt-2 flex items-center justify-between rounded-lg bg-slate-800 px-3 py-1.5 text-xs text-slate-300">
+              <div className="mt-2 flex items-center justify-between rounded-lg bg-gray-800 px-3 py-1.5 text-xs text-gray-300">
                 <span>
                   Replying to <span className="font-medium text-white">@{replyTo.username}</span>
                 </span>
                 <button
                   type="button"
                   onClick={() => setReplyTo(null)}
-                  className="text-slate-400 transition hover:text-white"
+                  className="text-gray-400 transition hover:text-white"
                 >
                   Cancel
                 </button>
               </div>
             ) : null}
 
-            <div className="mt-3 flex flex-wrap gap-2 text-xs text-slate-500">
-              <span className="rounded-full border border-slate-700 px-2 py-1 text-slate-300">
+            <div className="mt-3 flex flex-wrap gap-2 text-xs text-gray-500">
+              <span className="rounded-full border border-gray-700 px-2 py-1 text-gray-300">
                 {currentThought.type}
               </span>
-              <span className="rounded-full border border-slate-700 px-2 py-1 text-slate-300">
+              <span className="rounded-full border border-gray-700 px-2 py-1 text-gray-300">
                 {currentThought.visibility}
               </span>
             </div>
           </div>
         </div>
 
-        <div className="border-t border-slate-800 bg-slate-950/70 p-4 md:w-[45%] md:border-l md:border-t-0">
-          <div className="rounded-2xl border border-slate-800 bg-slate-950/60 p-4">
+        <div className="border-t border-gray-700 bg-[#080809] p-4 md:w-[45%] md:border-l md:border-t-0">
+          <div className="rounded-2xl border border-gray-700 bg-[#080809] p-4">
             <p className="text-sm font-semibold text-white">About this thought</p>
-            <p className="mt-2 whitespace-pre-wrap text-sm text-slate-200">
+            <p className="mt-2 whitespace-pre-wrap text-sm text-gray-200">
               {currentThought.text}
             </p>
           </div>

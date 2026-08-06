@@ -79,7 +79,7 @@ export function Sidebar({ expanded }: SidebarProps) {
             onClick={() => handleItemClick(id)}
             className={`flex items-center gap-4 rounded-xl p-3 transition ${
               expanded ? "w-full" : "w-fit"
-            } hover:bg-white/10`}
+            } hover:bg-[#080809]`}
           >
             <Icon size={22} />
 
@@ -110,8 +110,8 @@ export function Sidebar({ expanded }: SidebarProps) {
                 expanded ? "w-full" : "w-fit"
               } ${
                 isLogout
-                  ? "text-red-400 hover:bg-red-500/10 hover:text-red-300"
-                  : "hover:bg-white/10"
+                  ? "text-gray-400 hover:bg-[#080809] hover:text-white"
+                  : "hover:bg-[#080809]"
               }`}
             >
               <Icon size={22} />

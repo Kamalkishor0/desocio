@@ -76,7 +76,7 @@ export function Profile({ username }: { username: string }) {
 
   if (loading) {
     return (
-      <div className="mx-auto w-full max-w-2xl p-6 text-slate-400">
+      <div className="mx-auto w-full max-w-2xl p-6 text-gray-400">
         Loading profile...
       </div>
     );
@@ -146,17 +146,17 @@ export function Profile({ username }: { username: string }) {
   };
   return (
     <div className="mx-auto w-full max-w-2xl space-y-6 p-6">
-      <section className="glass rounded-3xl bg-slate-900/60 p-6 shadow-2xl shadow-slate-950/40 md:p-8">
+      <section className="glass rounded-3xl border border-gray-700 bg-[#080809] p-6 shadow-2xl shadow-black/40 md:p-8">
         <div className="flex items-start justify-between gap-4">
           <div className="flex min-w-0 flex-1 items-center gap-5">
             {avatarUrl ? (
               <img
                 src={avatarUrl}
                 alt={user.name}
-                className="h-20 w-20 rounded-full border border-slate-700 object-cover"
+                className="h-20 w-20 rounded-full border border-gray-700 object-cover"
               />
             ) : (
-              <div className="flex h-20 w-20 items-center justify-center rounded-full border border-slate-700 bg-slate-800 text-2xl font-semibold text-white">
+              <div className="flex h-20 w-20 items-center justify-center rounded-full border border-gray-700 bg-[#080809] text-2xl font-semibold text-white">
                 {initialFor(user)}
               </div>
             )}
@@ -165,18 +165,18 @@ export function Profile({ username }: { username: string }) {
               <h1 className="truncate text-2xl font-semibold text-white">
                 {user.name}
               </h1>
-              <p className="text-slate-400">@{user.username}</p>
+              <p className="text-gray-400">@{user.username}</p>
 
               <div className="mt-3 flex gap-6 text-sm">
-                <span className="text-slate-300">
+                <span className="text-gray-300">
                   <span className="font-semibold text-white">{posts.length}</span> posts
                 </span>
 
-                <span onClick={handleFriendsClick} className="text-slate-300 hover:cursor-pointer hover:text-white">
+                <span onClick={handleFriendsClick} className="text-gray-300 hover:cursor-pointer hover:text-white">
                   <span className="font-semibold text-white">{friendsCount}</span> friends
                 </span>
 
-                <span className="text-slate-300">
+                <span className="text-gray-300">
                   <span className="font-semibold text-white">{thoughts.length}</span> thoughts
                 </span>
               </div>
@@ -189,7 +189,7 @@ export function Profile({ username }: { username: string }) {
                 <button
                   type="button"
                   onClick={handleAddFriend}
-                  className="shrink-0 rounded-full bg-white px-5 py-2 text-sm font-medium text-slate-950 transition hover:bg-slate-200"
+                  className="shrink-0 rounded-full bg-white px-5 py-2 text-sm font-medium text-[#080809] transition hover:bg-gray-200"
                 >
                   Add Friend
                 </button>
@@ -199,7 +199,7 @@ export function Profile({ username }: { username: string }) {
                 <button
                   type="button"
                   onClick={handleCancelRequest}
-                  className="shrink-0 rounded-full border border-slate-700 bg-slate-800 px-5 py-2 text-sm font-medium text-slate-200 transition hover:border-red-500 hover:bg-red-500/10 hover:text-red-400"
+                  className="shrink-0 rounded-full border border-gray-700 bg-[#080809] px-5 py-2 text-sm font-medium text-gray-200 transition hover:bg-gray-800"
                 >
                   Cancel Request
                 </button>
@@ -208,7 +208,7 @@ export function Profile({ username }: { username: string }) {
               {friendshipStatus === "pending_received" && (
                 <button
                   type="button"
-                  className="shrink-0 rounded-full bg-white px-5 py-2 text-sm font-medium text-slate-950 transition hover:bg-slate-200"
+                  className="shrink-0 rounded-full bg-white px-5 py-2 text-sm font-medium text-[#080809] transition hover:bg-gray-200"
                 >
                   Accept Request
                 </button>
@@ -219,7 +219,7 @@ export function Profile({ username }: { username: string }) {
                   <button
                     type="button"
                     disabled
-                    className="shrink-0 cursor-default rounded-full border border-slate-700 bg-transparent px-5 py-2 text-sm font-medium text-slate-300"
+                    className="shrink-0 cursor-default rounded-full border border-gray-700 bg-transparent px-5 py-2 text-sm font-medium text-gray-300"
                   >
                     Friends
                   </button>
@@ -227,7 +227,7 @@ export function Profile({ username }: { username: string }) {
                   <button
                     type="button"
                     onClick={handleMessage}
-                    className="flex items-center gap-2 rounded-full bg-blue-600 px-5 py-2 text-sm font-medium text-white transition hover:bg-blue-700"
+                    className="flex items-center gap-2 rounded-full bg-white px-5 py-2 text-sm font-medium text-[#080809] transition hover:bg-gray-200"
                   >
                     <MessageCircle size={18} />
                     Message
@@ -238,24 +238,24 @@ export function Profile({ username }: { username: string }) {
           )}
         </div>
         {user.bio ? (
-          <p className="mt-4 text-slate-300">{user.bio}</p>
+          <p className="mt-4 text-gray-300">{user.bio}</p>
         ) : null}
 
         {user.createdAt ? (
-          <p className="mt-4 text-sm text-slate-500">
+          <p className="mt-4 text-sm text-gray-500">
             OG since {formatDate(user.createdAt)}
           </p>
         ) : null}
       </section>
 
-      <section className="glass rounded-3xl bg-slate-900/60 p-6 shadow-2xl shadow-slate-950/40 md:p-8">
-        <div className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/5 p-1 mb-4 text-sm">
+      <section className="glass rounded-3xl border border-gray-700 bg-[#080809] p-6 shadow-2xl shadow-black/40 md:p-8">
+        <div className="mb-4 inline-flex items-center gap-1 rounded-full border border-gray-700 bg-[#080809] p-1 text-sm">
           <button
             type="button"
             onClick={() => setActiveTab("posts")}
             aria-pressed={activeTab === "posts"}
             className={`rounded-full px-4 py-2 transition ${activeTab === "posts"
-              ? "bg-white text-slate-950" : "text-slate-300"
+              ? "bg-white text-[#080809]" : "text-gray-300"
               }`}
           >
             Posts
@@ -265,7 +265,7 @@ export function Profile({ username }: { username: string }) {
             onClick={() => setActiveTab("thoughts")}
             aria-pressed={activeTab === "thoughts"}
             className={`rounded-full px-4 py-2 transition ${activeTab === "thoughts"
-              ? "bg-white text-slate-950" : "text-slate-300"
+              ? "bg-white text-[#080809]" : "text-gray-300"
               }`}
           >
             Thoughts
@@ -274,7 +274,7 @@ export function Profile({ username }: { username: string }) {
 
         {activeTab === "posts" ? (
           posts.length === 0 ? (
-            <p className="text-slate-500">No posts yet.</p>
+            <p className="text-gray-500">No posts yet.</p>
           ) : (
             <div className="grid grid-cols-3 gap-1 sm:gap-2">
               {posts.map((post) => {
@@ -290,7 +290,7 @@ export function Profile({ username }: { username: string }) {
                     key={post.id}
                     type="button"
                     onClick={() => setSelectedPost(post)}
-                    className="group relative aspect-square overflow-hidden rounded-lg border border-slate-800 bg-slate-950 text-left"
+                    className="group relative aspect-square overflow-hidden rounded-lg border border-gray-700 bg-[#080809] text-left"
                   >
                     {cover ? (
                       <img
@@ -299,7 +299,7 @@ export function Profile({ username }: { username: string }) {
                         className="h-full w-full object-cover transition group-hover:opacity-80"
                       />
                     ) : (
-                      <span className="line-clamp-5 block h-full w-full p-2 text-xs text-slate-300">
+                      <span className="line-clamp-5 block h-full w-full p-2 text-xs text-gray-300">
                         {post.text}
                       </span>
                     )}
@@ -309,22 +309,22 @@ export function Profile({ username }: { username: string }) {
             </div>
           )
         ) : thoughts.length === 0 ? (
-          <p className="text-slate-500">No thoughts yet.</p>
+          <p className="text-gray-500">No thoughts yet.</p>
         ) : (
           <div className="space-y-4">
             {thoughts.map((thought) => (
               <article
                 key={thought.id}
-                className="rounded-xl border border-slate-800 bg-slate-950 p-4"
+                className="rounded-xl border border-gray-700 bg-[#080809] p-4"
               >
-                <p className="whitespace-pre-wrap text-slate-200">
+                <p className="whitespace-pre-wrap text-gray-200">
                   {thought.text}
                 </p>
-                <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-slate-500">
-                  <span className="rounded-full border border-slate-700 px-2 py-0.5 text-slate-300">
+                <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-gray-500">
+                  <span className="rounded-full border border-gray-700 px-2 py-0.5 text-gray-300">
                     {thought.type}
                   </span>
-                  <span className="rounded-full border border-slate-700 px-2 py-0.5 text-slate-300">
+                  <span className="rounded-full border border-gray-700 px-2 py-0.5 text-gray-300">
                     {thought.visibility}
                   </span>
                   <span>{formatDate(thought.createdAt)}</span>

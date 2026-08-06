@@ -68,19 +68,19 @@ export function AuthPanel({ onAuthed }: Props) {
   }
 
   return (
-    <form onSubmit={onSubmit} className="glass w-full max-w-md space-y-5 rounded-3xl bg-black p-8 shadow-2xl shadow-slate-800/60">
-      <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 p-1 text-sm">
+    <form onSubmit={onSubmit} className="glass w-full max-w-md space-y-5 rounded-3xl border border-gray-700 bg-[#080809] p-8 shadow-2xl shadow-black/40">
+      <div className="inline-flex items-center gap-2 rounded-full border border-gray-700 bg-[#080809] p-1 text-sm">
         <button
           type="button"
           onClick={() => setMode("login")}
-          className={`rounded-full px-4 py-2 transition ${mode === "login" ? "bg-white text-slate-950" : "text-slate-300"}`}
+          className={`rounded-full px-4 py-2 transition ${mode === "login" ? "bg-white text-[#080809]" : "text-gray-300"}`}
         >
           Sign in
         </button>
         <button
           type="button"
           onClick={() => setMode("register")}
-          className={`rounded-full px-4 py-2 transition ${mode === "register" ? "bg-white text-slate-950" : "text-slate-300"}`}
+          className={`rounded-full px-4 py-2 transition ${mode === "register" ? "bg-white text-[#080809]" : "text-gray-300"}`}
         >
           Create account
         </button>
@@ -90,7 +90,7 @@ export function AuthPanel({ onAuthed }: Props) {
         <h2 className="heading-font text-2xl font-semibold text-white">
           {mode === "login" ? "Welcome back" : "Start a new account"}
         </h2>
-        <p className="text-sm text-slate-300">
+        <p className="text-sm text-gray-300">
           {mode === "login"
             ? "Use your email or username."
             : "Create the account, then sign in with the same credentials."}
@@ -101,7 +101,7 @@ export function AuthPanel({ onAuthed }: Props) {
 
         {mode === "login" && (
           <>
-            <label className="block space-y-2 text-sm text-slate-200">
+            <label className="block space-y-2 text-sm text-gray-200">
               <span>Username or email</span>
               <input
                 value={userOrEmail}
@@ -109,11 +109,11 @@ export function AuthPanel({ onAuthed }: Props) {
                 onChange={(event) => setUserOrEmail(event.target.value)}
                 type="text"
                 placeholder="username"
-                className="w-full rounded-2xl border border-white/10 bg-black px-4 py-3 text-white outline-none transition placeholder:text-slate-500 focus:border-emerald-400/60"
+                className="w-full rounded-2xl border border-gray-700 bg-[#080809] px-4 py-3 text-white outline-none transition placeholder:text-gray-500 focus:border-gray-500"
               />
             </label>
 
-            <label className="block space-y-2 text-sm text-slate-200">
+            <label className="block space-y-2 text-sm text-gray-200">
               <span>Password</span>
               <input
                 value={password}
@@ -121,15 +121,15 @@ export function AuthPanel({ onAuthed }: Props) {
                 onChange={(event) => setPassword(event.target.value)}
                 type="password"
                 placeholder="••••••••"
-                className="w-full rounded-2xl border border-white/10 bg-black
-                 px-4 py-3 text-white outline-none transition placeholder:text-slate-500 focus:border-emerald-400/60"
+                className="w-full rounded-2xl border border-gray-700 bg-[#080809]
+                 px-4 py-3 text-white outline-none transition placeholder:text-gray-500 focus:border-gray-500"
               />
             </label>
           </>
         )}
         {mode === "register" && (
           <>
-            <label className="block space-y-2 text-sm text-slate-200">
+            <label className="block space-y-2 text-sm text-gray-200">
               <span>Email</span>
               <input
                 value={email}
@@ -137,10 +137,10 @@ export function AuthPanel({ onAuthed }: Props) {
                 onChange={(event) => setEmail(event.target.value)}
                 type="email"
                 placeholder="you@domain.com"
-                className="w-full rounded-2xl border border-white/10 bg-black px-4 py-3 text-white outline-none transition placeholder:text-slate-500 focus:border-emerald-400/60"
+                className="w-full rounded-2xl border border-gray-700 bg-[#080809] px-4 py-3 text-white outline-none transition placeholder:text-gray-500 focus:border-gray-500"
               />
             </label>
-            <label className="block space-y-2 text-sm text-slate-200">
+            <label className="block space-y-2 text-sm text-gray-200">
               <span>Password</span>
               <input
                 value={password}
@@ -148,10 +148,10 @@ export function AuthPanel({ onAuthed }: Props) {
                 onChange={(event) => setPassword(event.target.value)}
                 type="password"
                 placeholder="••••••••"
-                className="w-full rounded-2xl border border-white/10 bg-black px-4 py-3 text-white outline-none transition placeholder:text-slate-500 focus:border-emerald-400/60"
+                className="w-full rounded-2xl border border-gray-700 bg-[#080809] px-4 py-3 text-white outline-none transition placeholder:text-gray-500 focus:border-gray-500"
               />
             </label>
-            <label className="block space-y-2 text-sm text-slate-200">
+            <label className="block space-y-2 text-sm text-gray-200">
               <span>Name</span>
               <input
                 value={name}
@@ -159,10 +159,10 @@ export function AuthPanel({ onAuthed }: Props) {
                 onChange={(event) => setName(event.target.value)}
                 type="text"
                 placeholder="Your name"
-                className="w-full rounded-2xl border border-white/10 bg-black px-4 py-3 text-white outline-none transition placeholder:text-slate-500 focus:border-emerald-400/60"
+                className="w-full rounded-2xl border border-gray-700 bg-[#080809] px-4 py-3 text-white outline-none transition placeholder:text-gray-500 focus:border-gray-500"
               />
             </label>
-            <label className="block space-y-2 text-sm text-slate-200">
+            <label className="block space-y-2 text-sm text-gray-200">
               <span>Username</span>
               <input
                 value={username}
@@ -170,20 +170,20 @@ export function AuthPanel({ onAuthed }: Props) {
                 onChange={(event) => setUsername(event.target.value)}
                 type="text"
                 placeholder="username"
-                className="w-full rounded-2xl border border-white/10 bg-black px-4 py-3 text-white outline-none transition placeholder:text-slate-500 focus:border-emerald-400/60"
+                className="w-full rounded-2xl border border-gray-700 bg-[#080809] px-4 py-3 text-white outline-none transition placeholder:text-gray-500 focus:border-gray-500"
               />
             </label>
           </>
         )}
       </div>
 
-      {error ? <p className="rounded-2xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">{error}</p> : null}
-      {notice ? <p className="rounded-2xl border border-emerald-400/30 bg-emerald-400/10 px-4 py-3 text-sm text-emerald-100">{notice}</p> : null}
+      {error ? <p className="rounded-2xl border border-gray-700 bg-[#080809] px-4 py-3 text-sm text-gray-200">{error}</p> : null}
+      {notice ? <p className="rounded-2xl border border-gray-700 bg-[#080809] px-4 py-3 text-sm text-gray-200">{notice}</p> : null}
 
       <button
         type="submit"
         disabled={loading}
-        className="inline-flex w-full items-center justify-center rounded-2xl bg-white px-4 py-3 text-sm font-semibold text-slate-950 transition hover:bg-emerald-200 disabled:cursor-not-allowed disabled:opacity-60"
+        className="inline-flex w-full items-center justify-center rounded-2xl bg-white px-4 py-3 text-sm font-semibold text-[#080809] transition hover:bg-gray-200 disabled:cursor-not-allowed disabled:opacity-60"
       >
         {loading ? "Working..." : mode === "login" ? "Sign in" : "Create account"}
       </button>

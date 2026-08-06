@@ -75,7 +75,7 @@ export function FeedPostCard({ post }: Props) {
 
     return (
         <>
-            <article className="w-full overflow-hidden rounded-2xl border border-slate-800">
+            <article className="w-full overflow-hidden rounded-2xl border border-gray-700 bg-[#080809]">
 
                 <div className="flex items-center gap-3 p-4">
 
@@ -86,7 +86,7 @@ export function FeedPostCard({ post }: Props) {
                             className="h-11 w-11 rounded-full object-cover"
                         />
                     ) : (
-                        <div className="flex h-11 w-11 items-center justify-center rounded-full bg-slate-800 font-semibold text-white">
+                        <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#080809] font-semibold text-white">
                             {post.author.username[0].toUpperCase()}
                         </div>
                     )}
@@ -96,7 +96,7 @@ export function FeedPostCard({ post }: Props) {
                             {post.author.name}
                         </p>
 
-                        <div className="flex items-center gap-2 text-sm text-slate-400">
+                        <div className="flex items-center gap-2 text-sm text-gray-400">
                             <span className="truncate">@{post.author.username}</span>
                             <span>•</span>
                             <span className="text-xs">{formatDate(post.createdAt)}</span>
@@ -106,7 +106,7 @@ export function FeedPostCard({ post }: Props) {
                 </div>
 
                 {post.text && (
-                    <p className="px-4 pb-3 whitespace-pre-wrap text-slate-200">
+                    <p className="px-4 pb-3 whitespace-pre-wrap text-gray-200">
                         {post.text}
                     </p>
                 )}
@@ -135,7 +135,7 @@ export function FeedPostCard({ post }: Props) {
                                                 : current - 1
                                         )
                                     }
-                                    className="absolute left-3 top-1/2 -translate-y-1/2 rounded-full bg-black/60 p-2 text-white"
+                                    className="absolute left-3 top-1/2 -translate-y-1/2 rounded-full bg-[#080809] p-2 text-white"
                                 >
                                     <ChevronLeft size={18} />
                                 </button>
@@ -148,12 +148,12 @@ export function FeedPostCard({ post }: Props) {
                                                 : current + 1
                                         )
                                     }
-                                    className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full bg-black/60 p-2 text-white"
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full bg-[#080809] p-2 text-white"
                                 >
                                     <ChevronRight size={18} />
                                 </button>
 
-                                <div className="absolute bottom-3 left-1/2 -translate-x-1/2 rounded-full bg-black/60 px-3 py-1 text-xs text-white">
+                                <div className="absolute bottom-3 left-1/2 -translate-x-1/2 rounded-full bg-[#080809] px-3 py-1 text-xs text-white">
                                     {photoIndex + 1}/{photos.length}
                                 </div>
                             </>
@@ -175,8 +175,8 @@ export function FeedPostCard({ post }: Props) {
                                     key={type}
                                     onClick={() => toggleReaction(type)}
                                     className={`rounded-full border p-2 transition ${active
-                                        ? "border-blue-500 bg-blue-500/10 text-blue-400"
-                                        : "border-slate-700 text-slate-300 hover:bg-slate-800"
+                                        ? "border-gray-500 bg-[#080809] text-white"
+                                        : "border-gray-700 text-gray-300 hover:bg-[#080809]"
                                         }`}
                                 >
                                     <Icon size={18} />
@@ -191,13 +191,13 @@ export function FeedPostCard({ post }: Props) {
 
                         <button
                             onClick={() => setModalOpen(true)}
-                            className="rounded-full border border-slate-700 p-2 text-slate-300 transition hover:bg-slate-800"
+                            className="rounded-full border border-gray-700 p-2 text-gray-300 transition hover:bg-[#080809]"
                         >
                             <MessageCircle size={18} />
                         </button>
 
                         <button
-                            className="rounded-full border border-slate-700 p-2 text-slate-300 transition hover:bg-slate-800"
+                            className="rounded-full border border-gray-700 p-2 text-gray-300 transition hover:bg-[#080809]"
                         >
                             <Share2 size={18} />
                         </button>

@@ -160,31 +160,31 @@ export function PostModal({ post, author, onClose, onReactionChange }: PostModal
             <img
               src={commentAvatar}
               alt={comment.author.username}
-              className="h-7 w-7 shrink-0 rounded-full border border-slate-700 object-cover"
+              className="h-7 w-7 shrink-0 rounded-full border border-gray-700 object-cover"
             />
           ) : (
-            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-slate-700 bg-slate-800 text-xs font-semibold text-white">
+            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-gray-700 bg-[#080809] text-xs font-semibold text-white">
               {comment.author.username.charAt(0).toUpperCase()}
             </div>
           )}
           <div className="min-w-0 flex-1">
-            <p className="text-sm text-slate-200">
+            <p className="text-sm text-gray-200">
               <span className="font-semibold text-white">
                 @{comment.author.username}
               </span>{" "}
               {replyingTo ? (
-                <span className="font-medium text-blue-400">
+                <span className="font-medium text-white">
                   @{replyingTo}
                 </span>
               ) : null}{" "}
               <span className="whitespace-pre-wrap">{comment.text}</span>
             </p>
-            <div className="mt-1 flex items-center gap-3 text-xs text-slate-500">
+            <div className="mt-1 flex items-center gap-3 text-xs text-gray-500">
               <span>{formatDate(comment.createdAt)}</span>
               <button
                 type="button"
                 onClick={() => startReply(comment)}
-                className="font-medium text-slate-400 transition hover:text-white"
+                className="font-medium text-gray-400 transition hover:text-white"
               >
                 Reply
               </button>
@@ -208,10 +208,10 @@ export function PostModal({ post, author, onClose, onReactionChange }: PostModal
       onClick={onClose}
     >
       <div
-        className="flex h-[85vh] max-h-[90vh] w-full max-w-4xl flex-col overflow-hidden rounded-2xl border border-slate-800 bg-slate-900 md:flex-row"
+        className="flex h-[85vh] max-h-[90vh] w-full max-w-4xl flex-col overflow-hidden rounded-2xl border border-gray-700 bg-[#080809] md:flex-row"
         onClick={(event) => event.stopPropagation()}
       >
-        <div className="relative flex items-center justify-center bg-slate-950 md:w-1/2">
+        <div className="relative flex items-center justify-center bg-[#080809] md:w-1/2">
           {photos.length > 0 ? (
             <div className="flex h-full max-h-[45vh] w-full items-center justify-center md:max-h-[90vh]">
               <img
@@ -244,7 +244,7 @@ export function PostModal({ post, author, onClose, onReactionChange }: PostModal
                     {photoIndex + 1}/{photos.length}
                   </div>
 
-                  <div className="absolute bottom-3 right-3 flex gap-1.5">
+                        <div className="absolute bottom-3 right-3 flex gap-1.5">
                     {photos.map((photo, index) => (
                       <button
                         key={photo.id}
@@ -254,7 +254,7 @@ export function PostModal({ post, author, onClose, onReactionChange }: PostModal
                         className={`h-1.5 rounded-full transition-all ${
                           index === photoIndex
                             ? "w-4 bg-white"
-                            : "w-1.5 bg-white/50 hover:bg-white/80"
+                            : "w-1.5 bg-gray-500 hover:bg-gray-300"
                         }`}
                       />
                     ))}
@@ -263,30 +263,30 @@ export function PostModal({ post, author, onClose, onReactionChange }: PostModal
               ) : null}
             </div>
           ) : (
-            <div className="flex min-h-[200px] w-full items-center justify-center p-8 text-center text-lg text-slate-200">
+            <div className="flex min-h-[200px] w-full items-center justify-center p-8 text-center text-lg text-gray-200">
               {post.text}
             </div>
           )}
         </div>
 
         <div className="flex min-h-0 flex-1 flex-col md:w-1/2">
-          <div className="flex items-start justify-between gap-3 border-b border-slate-800 p-4">
+          <div className="flex items-start justify-between gap-3 border-b border-gray-700 p-4">
             <div className="flex min-w-0 gap-3">
               {avatarUrl ? (
                 <img
                   src={avatarUrl}
                   alt={author.username}
-                  className="h-9 w-9 shrink-0 rounded-full border border-slate-700 object-cover"
+                  className="h-9 w-9 shrink-0 rounded-full border border-gray-700 object-cover"
                 />
               ) : (
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-slate-700 bg-slate-800 text-sm font-semibold text-white">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-gray-700 bg-[#080809] text-sm font-semibold text-white">
                   {author.username.charAt(0).toUpperCase()}
                 </div>
               )}
-              <div className="min-w-0 text-sm text-slate-200">
+              <div className="min-w-0 text-sm text-gray-200">
                 <p className="font-semibold text-white">@{author.username}</p>
                 {photos.length > 0 && post.text ? (
-                  <p className="mt-0.5 whitespace-pre-wrap text-slate-200">
+                  <p className="mt-0.5 whitespace-pre-wrap text-gray-200">
                     {post.text}
                   </p>
                 ) : null}
@@ -296,7 +296,7 @@ export function PostModal({ post, author, onClose, onReactionChange }: PostModal
               type="button"
               onClick={onClose}
               aria-label="Close"
-              className="shrink-0 rounded-full p-1 text-slate-400 transition hover:bg-slate-800 hover:text-white"
+              className="shrink-0 rounded-full p-1 text-gray-400 transition hover:bg-[#080809] hover:text-white"
             >
               <X size={20} />
             </button>
@@ -304,7 +304,7 @@ export function PostModal({ post, author, onClose, onReactionChange }: PostModal
 
           <div className="slim-scrollbar min-h-0 flex-1 space-y-4 overflow-y-auto p-4">
             {comments.length === 0 ? (
-              <p className="text-sm text-slate-500">No comments yet.</p>
+              <p className="text-sm text-gray-500">No comments yet.</p>
             ) : (
               <ul className="space-y-4">
                 {comments.map((comment) => renderComment(comment, false))}
@@ -312,7 +312,7 @@ export function PostModal({ post, author, onClose, onReactionChange }: PostModal
             )}
           </div>
 
-          <div className="border-t border-slate-800 p-4">
+          <div className="border-t border-gray-700 p-4">
             <div className="flex items-center gap-2">
               {REACTIONS.map(({ type, label, Icon }) => {
                 const active = reaction === type;
@@ -325,8 +325,8 @@ export function PostModal({ post, author, onClose, onReactionChange }: PostModal
                     onClick={() => toggleReaction(type)}
                     className={`flex items-center gap-1 rounded-full border px-3 py-1.5 text-sm transition ${
                       active
-                        ? "border-blue-500 bg-blue-500/10 text-blue-400"
-                        : "border-slate-700 text-slate-300 hover:bg-slate-800"
+                        ? "border-gray-500 bg-[#080809] text-white"
+                        : "border-gray-700 text-gray-300 hover:bg-[#080809]"
                     }`}
                   >
                     <Icon size={18} />
@@ -334,12 +334,12 @@ export function PostModal({ post, author, onClose, onReactionChange }: PostModal
                 );
               })}
             </div>
-            <p className="mt-3 text-xs text-slate-500">
+            <p className="mt-3 text-xs text-gray-500">
               {formatDate(post.createdAt)}
             </p>
 
             {replyTo ? (
-              <div className="mt-3 flex items-center justify-between rounded-lg bg-slate-800 px-3 py-1.5 text-xs text-slate-300">
+              <div className="mt-3 flex items-center justify-between rounded-lg bg-[#080809] px-3 py-1.5 text-xs text-gray-300">
                 <span>
                   Replying to{" "}
                   <span className="font-medium text-white">
@@ -350,7 +350,7 @@ export function PostModal({ post, author, onClose, onReactionChange }: PostModal
                   type="button"
                   onClick={() => setReplyTo(null)}
                   aria-label="Cancel reply"
-                  className="text-slate-400 transition hover:text-white"
+                  className="text-gray-400 transition hover:text-white"
                 >
                   <X size={14} />
                 </button>
@@ -366,13 +366,13 @@ export function PostModal({ post, author, onClose, onReactionChange }: PostModal
                 placeholder={
                   replyTo ? `Reply to @${replyTo.username}...` : "Add a comment..."
                 }
-                className="flex-1 rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white placeholder:text-slate-500 outline-none focus:border-blue-500"
+                className="flex-1 rounded-xl border border-gray-700 bg-[#080809] px-3 py-2 text-sm text-white placeholder:text-gray-500 outline-none focus:border-gray-500"
               />
               <button
                 type="submit"
                 disabled={submitting || !commentText.trim()}
                 aria-label="Post comment"
-                className="rounded-xl bg-blue-600 p-2 text-white transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-60"
+                className="rounded-xl bg-white p-2 text-[#080809] transition hover:bg-gray-200 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 <Send size={18} />
               </button>

@@ -129,17 +129,17 @@ export function Search() {
           autoComplete="off"
           spellCheck={false}
           onKeyDown={handleKeyDown}
-          className="h-12 w-full rounded-full border border-slate-700 bg-slate-800 pl-5 pr-14 text-sm text-white placeholder:text-slate-500 shadow-sm outline-none transition focus:border-slate-500 focus:ring-2 focus:ring-slate-600"
+          className="h-12 w-full rounded-full border border-gray-700 bg-[#080809] pl-5 pr-14 text-sm text-white placeholder:text-gray-500 shadow-sm outline-none transition focus:border-gray-500 focus:ring-2 focus:ring-gray-600"
         />
 
         <SearchIcon
           size={18}
-          className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400"
+          className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400"
         />
       </div>
 
       {loading && (
-        <p className="mt-6 text-center text-slate-400">
+        <p className="mt-6 text-center text-gray-400">
           Searching...
         </p>
       )}
@@ -154,7 +154,7 @@ export function Search() {
       )}
 
       {open && (
-        <div className="absolute left-4 right-4 top-14 z-50 overflow-hidden rounded-2xl border border-slate-700 bg-slate-900 shadow-2xl">
+        <div className="absolute left-4 right-4 top-14 z-50 overflow-hidden rounded-2xl border border-gray-700 bg-[#080809] shadow-2xl">
 
           {!loading &&
             users.map((user, index) => {
@@ -168,9 +168,9 @@ export function Search() {
                     setOpen(false);
                     router.push(`/home/profile/${user.username}`);
                   }}
-                  className={`flex w-full items-center gap-4 border-b border-slate-800 p-4 text-left transition last:border-none ${highlightedIndex === index
-                    ? "bg-slate-800"
-                    : "hover:bg-slate-800"
+                  className={`flex w-full items-center gap-4 border-b border-gray-700 p-4 text-left transition last:border-none ${highlightedIndex === index
+                    ? "bg-[#080809]"
+                    : "hover:bg-[#080809]"
                     }`}
                 >
                   {avatar ? (
@@ -180,7 +180,7 @@ export function Search() {
                       className="h-11 w-11 rounded-full object-cover"
                     />
                   ) : (
-                    <div className="flex h-11 w-11 items-center justify-center rounded-full bg-slate-700 font-semibold text-white">
+                    <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#080809] font-semibold text-white">
                       {(user.name || user.username)[0].toUpperCase()}
                     </div>
                   )}
@@ -190,7 +190,7 @@ export function Search() {
                       {user.name}
                     </p>
 
-                    <p className="truncate text-sm text-slate-400">
+                    <p className="truncate text-sm text-gray-400">
                       @{user.username}
                     </p>
                   </div>

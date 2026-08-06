@@ -16,8 +16,8 @@ export function MessageBubble({
       <div
         className={`whitespace-pre-wrap max-w-[75%] rounded-2xl px-4 py-2 text-sm leading-relaxed shadow-sm ${
           isOwnMessage
-            ? "rounded-br-md bg-cyan-600 text-white"
-            : "rounded-bl-md bg-slate-800 text-slate-100"
+            ? "rounded-br-md bg-white text-[#080809]"
+            : "rounded-bl-md bg-[#080809] text-white"
         }`}
       >
         {message.content}

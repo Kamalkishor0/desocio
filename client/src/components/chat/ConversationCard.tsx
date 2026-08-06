@@ -18,18 +18,18 @@ export function ConversationCard({
   return (
     <Link
       href={href}
-      className={`flex items-center gap-3 border-b border-white/10 p-4 transition hover:bg-white/5 ${
-        isActive ? "bg-white/10" : ""
+      className={`flex items-center gap-3 border-b border-gray-700 p-4 transition hover:bg-[#080809] ${
+        isActive ? "bg-[#080809]" : ""
       }`}
     >
-      <div className="h-12 w-12 rounded-full bg-slate-700" />
+      <div className="h-12 w-12 rounded-full bg-[#080809]" />
 
       <div className="min-w-0 flex-1">
         <p className="font-medium">
           {conversation.otherUser.name}
         </p>
 
-        <p className="truncate text-sm text-slate-400">
+        <p className="truncate text-sm text-gray-400">
           {conversation.lastMessage?.content ??
             "No messages yet"}
         </p>

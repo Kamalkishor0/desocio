@@ -86,20 +86,20 @@ export function FeedBoard() {
         {Array.from({ length: 3 }).map((_, index) => (
           <div
             key={index}
-            className="animate-pulse rounded-2xl border border-slate-800 bg-slate-900 p-5"
+            className="animate-pulse rounded-2xl border border-gray-700 bg-[#080809] p-5"
           >
             <div className="mb-4 flex items-center gap-3">
-              <div className="h-11 w-11 rounded-full bg-slate-800" />
+              <div className="h-11 w-11 rounded-full bg-[#080809]" />
 
               <div className="space-y-2">
-                <div className="h-4 w-28 rounded bg-slate-800" />
-                <div className="h-3 w-20 rounded bg-slate-800" />
+                <div className="h-4 w-28 rounded bg-[#080809]" />
+                <div className="h-3 w-20 rounded bg-[#080809]" />
               </div>
             </div>
 
-            <div className="mb-4 h-5 w-2/3 rounded bg-slate-800" />
+            <div className="mb-4 h-5 w-2/3 rounded bg-[#080809]" />
 
-            <div className="aspect-square rounded-xl bg-slate-800" />
+            <div className="aspect-square rounded-xl bg-[#080809]" />
           </div>
         ))}
       </div>
@@ -113,7 +113,7 @@ export function FeedBoard() {
           Your feed is empty
         </h2>
 
-        <p className="mt-3 max-w-md text-slate-400">
+        <p className="mt-3 max-w-md text-gray-400">
           Add friends and ask them to share posts. Once they do,
           they'll appear here.
         </p>
@@ -136,7 +136,7 @@ export function FeedBoard() {
         className="flex justify-center py-8"
       >
         {loadingMore && (
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-slate-600 border-t-blue-500" />
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-gray-600 border-t-white" />
         )}
       </div>
 

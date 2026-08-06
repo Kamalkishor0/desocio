@@ -31,13 +31,13 @@ export function MessageInput({ onSend }: Props) {
   }
 
   return (
-    <div className="shrink-0 border-t border-white/10 p-3 backdrop-blur">
-      <div className="flex items-center gap-2 rounded-2xl border border-white/10 bg-slate-950/40 px-3 py-2 shadow-lg shadow-black/10">
+    <div className="shrink-0 border-t border-gray-700 p-3 backdrop-blur">
+      <div className="flex items-center gap-2 rounded-2xl border border-gray-700 bg-[#080809] px-3 py-2 shadow-lg shadow-black/10">
         <input
           value={content}
           onChange={(e) => setContent(e.target.value)}
           onKeyDown={handleKeyDown}
-          className="flex-1 bg-transparent py-1.5 text-sm text-white outline-none placeholder:text-slate-400"
+          className="flex-1 bg-transparent py-1.5 text-sm text-white outline-none placeholder:text-gray-400"
           placeholder="Type a message..."
         />
 
@@ -45,7 +45,7 @@ export function MessageInput({ onSend }: Props) {
           type="button"
           onClick={handleSend}
           aria-label="Send message"
-          className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-cyan-500/20 bg-cyan-500/10 text-cyan-300 transition hover:bg-cyan-500/20 hover:text-cyan-200"
+          className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-gray-700 bg-white text-[#080809] transition hover:bg-gray-200 hover:text-[#080809]"
         >
           <SendHorizontal size={16} strokeWidth={2.2} />
         </button>

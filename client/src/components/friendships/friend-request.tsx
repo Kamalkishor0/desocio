@@ -71,7 +71,7 @@ export function FriendRequests() {
   }
   if (loading) {
     return (
-      <div className="rounded-3xl border border-slate-800 bg-slate-900/60 p-6 text-center text-slate-400">
+      <div className="rounded-3xl border border-gray-700 bg-[#080809] p-6 text-center text-gray-400">
         Loading friend requests...
       </div>
     );
@@ -81,13 +81,13 @@ export function FriendRequests() {
 
   return (
     <div className="space-y-6">
-      <div className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/5 p-1 text-sm">
+      <div className="inline-flex items-center gap-1 rounded-full border border-gray-700 bg-[#080809] p-1 text-sm">
         <button
           type="button"
           onClick={() => setMode("received")}
           className={`rounded-full px-4 py-2 transition ${mode === "received"
-              ? "bg-white text-slate-950"
-              : "text-slate-300"
+              ? "bg-white text-[#080809]"
+              : "text-gray-300"
             }`}
         >
           Received ({received.length})
@@ -97,8 +97,8 @@ export function FriendRequests() {
           type="button"
           onClick={() => setMode("sent")}
           className={`rounded-full px-4 py-2 transition ${mode === "sent"
-              ? "bg-white text-slate-950"
-              : "text-slate-300"
+              ? "bg-white text-[#080809]"
+              : "text-gray-300"
             }`}
         >
           Sent ({sent.length})
@@ -106,7 +106,7 @@ export function FriendRequests() {
       </div>
 
       {requests.length === 0 ? (
-        <div className="rounded-3xl border border-slate-800 bg-slate-900/60 p-10 text-center text-slate-400">
+        <div className="rounded-3xl border border-gray-700 bg-[#080809] p-10 text-center text-gray-400">
           {mode === "received"
             ? "No pending friend requests."
             : "You haven't sent any friend requests."}
