@@ -68,7 +68,7 @@ export function AuthPanel({ onAuthed }: Props) {
   }
 
   return (
-    <form onSubmit={onSubmit} className="glass w-full max-w-md space-y-5 rounded-3xl bg-slate-900 p-8 shadow-2xl shadow-slate-800/60">
+    <form onSubmit={onSubmit} className="glass w-full max-w-md space-y-5 rounded-3xl bg-black p-8 shadow-2xl shadow-slate-800/60">
       <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 p-1 text-sm">
         <button
           type="button"
@@ -109,7 +109,7 @@ export function AuthPanel({ onAuthed }: Props) {
                 onChange={(event) => setUserOrEmail(event.target.value)}
                 type="text"
                 placeholder="username"
-                className="w-full rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-white outline-none transition placeholder:text-slate-500 focus:border-emerald-400/60"
+                className="w-full rounded-2xl border border-white/10 bg-black px-4 py-3 text-white outline-none transition placeholder:text-slate-500 focus:border-emerald-400/60"
               />
             </label>
 
@@ -121,7 +121,8 @@ export function AuthPanel({ onAuthed }: Props) {
                 onChange={(event) => setPassword(event.target.value)}
                 type="password"
                 placeholder="••••••••"
-                className="w-full rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-white outline-none transition placeholder:text-slate-500 focus:border-emerald-400/60"
+                className="w-full rounded-2xl border border-white/10 bg-black
+                 px-4 py-3 text-white outline-none transition placeholder:text-slate-500 focus:border-emerald-400/60"
               />
             </label>
           </>
@@ -136,7 +137,7 @@ export function AuthPanel({ onAuthed }: Props) {
                 onChange={(event) => setEmail(event.target.value)}
                 type="email"
                 placeholder="you@domain.com"
-                className="w-full rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-white outline-none transition placeholder:text-slate-500 focus:border-emerald-400/60"
+                className="w-full rounded-2xl border border-white/10 bg-black px-4 py-3 text-white outline-none transition placeholder:text-slate-500 focus:border-emerald-400/60"
               />
             </label>
             <label className="block space-y-2 text-sm text-slate-200">
@@ -147,7 +148,7 @@ export function AuthPanel({ onAuthed }: Props) {
                 onChange={(event) => setPassword(event.target.value)}
                 type="password"
                 placeholder="••••••••"
-                className="w-full rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-white outline-none transition placeholder:text-slate-500 focus:border-emerald-400/60"
+                className="w-full rounded-2xl border border-white/10 bg-black px-4 py-3 text-white outline-none transition placeholder:text-slate-500 focus:border-emerald-400/60"
               />
             </label>
             <label className="block space-y-2 text-sm text-slate-200">
@@ -158,7 +159,7 @@ export function AuthPanel({ onAuthed }: Props) {
                 onChange={(event) => setName(event.target.value)}
                 type="text"
                 placeholder="Your name"
-                className="w-full rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-white outline-none transition placeholder:text-slate-500 focus:border-emerald-400/60"
+                className="w-full rounded-2xl border border-white/10 bg-black px-4 py-3 text-white outline-none transition placeholder:text-slate-500 focus:border-emerald-400/60"
               />
             </label>
             <label className="block space-y-2 text-sm text-slate-200">
@@ -169,7 +170,7 @@ export function AuthPanel({ onAuthed }: Props) {
                 onChange={(event) => setUsername(event.target.value)}
                 type="text"
                 placeholder="username"
-                className="w-full rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-white outline-none transition placeholder:text-slate-500 focus:border-emerald-400/60"
+                className="w-full rounded-2xl border border-white/10 bg-black px-4 py-3 text-white outline-none transition placeholder:text-slate-500 focus:border-emerald-400/60"
               />
             </label>
           </>

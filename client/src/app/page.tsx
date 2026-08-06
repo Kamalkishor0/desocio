@@ -8,7 +8,7 @@ export default function Page() {
 
 	return (
 		<main className="min-h-screen flex">
-			<section className="hidden md:flex w-1/2 bg-slate-900 items-center">
+			<section className="hidden md:flex w-1/2 bg-black items-center">
 				<div className="max-w-lg ml-24">
 					<h1 className="text-6xl font-extrabold text-white">
 						DeSocio

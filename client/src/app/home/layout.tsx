@@ -48,7 +48,7 @@ export default function HomeLayout({
 
   if (booting || !user) {
     return (
-      <main className="min-h-screen bg-slate-950 px-6 py-10 text-white">
+      <main className="min-h-screen bg-black px-6 py-10 text-white">
         <div className="mx-auto max-w-5xl animate-pulse rounded-3xl border border-white/10 bg-white/5 p-8">
           Loading feed...
         </div>
@@ -64,7 +64,7 @@ export default function HomeLayout({
             <aside
               onMouseEnter={() => setExpanded(true)}
               onMouseLeave={() => setExpanded(false)}
-              className="sticky top-2 md:top-8 flex h-[calc(100vh-1rem)] md:h-[calc(100vh-4rem)] w-full flex-col bg-gray-800"
+              className="sticky top-2 md:top-8 flex h-[calc(100vh-1rem)] md:h-[calc(100vh-4rem)] w-full flex-col"
             >
               <h1 className="heading-font mb-6 hidden px-4 text-3xl font-extrabold tracking-tight text-white md:block">
                 DeSocio

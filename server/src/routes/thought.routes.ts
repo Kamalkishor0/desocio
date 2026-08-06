@@ -4,6 +4,7 @@ import {
 	createThought,
 	deleteThought,
 	getAllThoughts,
+	getPublicThoughtFeed,
 	getCommentsForThought,
 	getThoughtSavers,
 	getThoughtSupporters,
@@ -19,6 +20,7 @@ const router = Router();
 //Will implement thought control mechanism later
 router.post('/', authMiddleware, createThought);
 router.get('/', authMiddleware, getAllThoughts);
+router.get('/public', authMiddleware, getPublicThoughtFeed);
 router.get('/:id', authMiddleware, getThoughtById);
 router.delete('/:id', authMiddleware, deleteThought);
 router.post('/:id/support', authMiddleware, supportThought);

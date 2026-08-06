@@ -258,12 +258,16 @@ model ThoughtComment {
   author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
   thoughtId String
   thought   Thought  @relation(fields: [thoughtId], references: [id], onDelete: Cascade)
+  parentId  String?
+  parent    ThoughtComment? @relation("ThoughtCommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies   ThoughtComment[] @relation("ThoughtCommentReplies")
   text      String   @db.VarChar(500)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([authorId, createdAt])
   @@index([thoughtId, createdAt])
+  @@index([parentId, createdAt])
   @@map("thought_comments")
 }
 

@@ -2,6 +2,8 @@ import { Response } from "express";
 import { ThoughtVisibility, TypeOfThought } from "@prisma/client";
 import { AuthenticatedRequest } from "../types/auth";
 import prisma from "../config/db";
+import { createFeedCursor, parseFeedCursor } from "../utils/cursor";
+import { getPaginationLimit } from "../utils/pagination";
 
 function getSingleString(value: unknown): string | undefined {
     return typeof value === "string" ? value : undefined;
@@ -113,6 +115,84 @@ export async function getAllThoughts(req: AuthenticatedRequest, res: Response) {
     return res.json(thoughts);
 }
 
+export async function getPublicThoughtFeed(req: AuthenticatedRequest, res: Response) {
+    const auth = req.auth;
+    if (!auth) {
+        return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const { cursor, limit, type } = req.query as {
+        cursor?: string;
+        limit?: string;
+        type?: string;
+    };
+
+    const cursorValue = parseFeedCursor(getSingleString(cursor));
+    const limitNumber = getPaginationLimit(limit);
+    const parsedType = parseTypeOfThought(getSingleString(type));
+
+    if (type !== undefined && !parsedType) {
+        return res.status(400).json({ message: "Invalid thought type" });
+    }
+
+    const thoughts = await prisma.thought.findMany({
+        where: {
+            visibility: ThoughtVisibility.public,
+            ...(parsedType ? { type: parsedType } : {}),
+            ...(cursorValue
+                ? {
+                    OR: [
+                        { createdAt: { lt: cursorValue.createdAt } },
+                        {
+                            createdAt: cursorValue.createdAt,
+                            id: { lt: cursorValue.id },
+                        },
+                    ],
+                }
+                : {}),
+        },
+        include: {
+            author: {
+                select: {
+                    id: true,
+                    username: true,
+                    profilePictureUrl: true,
+                    name: true,
+                },
+            },
+        },
+        orderBy: [
+            { createdAt: "desc" },
+            { id: "desc" },
+        ],
+        take: limitNumber + 1,
+    });
+
+    const hasMore = thoughts.length > limitNumber;
+    const pagedThoughts = hasMore ? thoughts.slice(0, limitNumber) : thoughts;
+
+    const nextCursor = hasMore
+        ? createFeedCursor(
+            pagedThoughts[pagedThoughts.length - 1].createdAt,
+            pagedThoughts[pagedThoughts.length - 1].id
+        )
+        : null;
+
+    return res.json({
+        data: pagedThoughts.map((thought) => ({
+            id: thought.id,
+            authorId: thought.authorId,
+            text: thought.text,
+            type: thought.type,
+            visibility: thought.visibility,
+            createdAt: thought.createdAt,
+            updatedAt: thought.updatedAt,
+            author: thought.author,
+        })),
+        nextCursor,
+    });
+}
+
 export async function getThoughtById(req: AuthenticatedRequest, res: Response) {
     const auth = req.auth;
     if (!auth) {
@@ -124,8 +204,24 @@ export async function getThoughtById(req: AuthenticatedRequest, res: Response) {
         return res.status(400).json({ message: "Invalid thought id" });
     }
 
-    const thought = await getVisibleThought(auth.id, thoughtId);
+    const thought = await prisma.thought.findUnique({
+        where: { id: thoughtId },
+        include: {
+            author: {
+                select: {
+                    id: true,
+                    username: true,
+                    profilePictureUrl: true,
+                    name: true,
+                },
+            },
+        },
+    });
     if (!thought) {
+        return res.status(404).json({ message: "Thought not found" });
+    }
+
+    if (thought.authorId !== auth.id && thought.visibility !== ThoughtVisibility.public) {
         return res.status(404).json({ message: "Thought not found" });
     }
 
@@ -267,15 +363,35 @@ export async function commentOnThought(req: AuthenticatedRequest, res: Response)
         return res.status(400).json({ message: "Invalid thought id" });
     }
 
-    const { text } = req.body as { text?: string };
+    const { text, parentId: parentIdRaw } = req.body as { text?: string; parentId?: unknown };
     const trimmedText = typeof text === "string" ? text.trim() : "";
     if (!trimmedText) {
         return res.status(400).json({ message: "Comment text is required" });
     }
 
+    const parentIdInput = getSingleString(parentIdRaw);
+
     const thought = await getVisibleThought(auth.id, thoughtId);
     if (!thought) {
         return res.status(404).json({ message: "Thought not found" });
+    }
+
+    if (parentIdInput && thought.type !== TypeOfThought.discussions) {
+        return res.status(400).json({ message: "Replies are only available for discussion thoughts" });
+    }
+
+    let parentId: string | null = null;
+    if (parentIdInput) {
+        const parent = await prisma.thoughtComment.findUnique({
+            where: { id: parentIdInput },
+            select: { id: true, thoughtId: true, parentId: true },
+        });
+
+        if (!parent || parent.thoughtId !== thoughtId) {
+            return res.status(404).json({ message: "Parent comment not found" });
+        }
+
+        parentId = parent.parentId ?? parent.id;
     }
 
     const comment = await prisma.thoughtComment.create({
@@ -283,6 +399,17 @@ export async function commentOnThought(req: AuthenticatedRequest, res: Response)
             thoughtId,
             authorId: auth.id,
             text: trimmedText,
+            parentId,
+        },
+        include: {
+            author: {
+                select: {
+                    id: true,
+                    username: true,
+                    profilePictureUrl: true,
+                    name: true,
+                },
+            },
         },
     });
     return res.status(201).json(comment);
@@ -312,14 +439,57 @@ export async function getCommentsForThought(req: AuthenticatedRequest, res: Resp
     const where = { thoughtId };
     const total = await prisma.thoughtComment.count({ where });
     const comments = await prisma.thoughtComment.findMany({
-        where,
+        where: { thoughtId, parentId: null },
         orderBy: { createdAt: "asc" },
         skip,
         take: limitNumber,
+        include: {
+            author: {
+                select: {
+                    id: true,
+                    username: true,
+                    profilePictureUrl: true,
+                    name: true,
+                },
+            },
+            replies: {
+                orderBy: { createdAt: "asc" },
+                include: {
+                    author: {
+                        select: {
+                            id: true,
+                            username: true,
+                            profilePictureUrl: true,
+                            name: true,
+                        },
+                    },
+                },
+            },
+        },
     });
 
     return res.json({
-        data: comments,
+        data: comments.map((comment) => ({
+            id: comment.id,
+            thoughtId: comment.thoughtId,
+            authorId: comment.authorId,
+            parentId: comment.parentId,
+            text: comment.text,
+            createdAt: comment.createdAt,
+            updatedAt: comment.updatedAt,
+            author: comment.author,
+            replies: comment.replies.map((reply) => ({
+                id: reply.id,
+                thoughtId: reply.thoughtId,
+                authorId: reply.authorId,
+                parentId: reply.parentId,
+                text: reply.text,
+                createdAt: reply.createdAt,
+                updatedAt: reply.updatedAt,
+                author: reply.author,
+                replies: [],
+            })),
+        })),
         page: pageNumber,
         limit: limitNumber,
         total,
@@ -356,7 +526,7 @@ export async function getThoughtSupporters(req: AuthenticatedRequest, res: Respo
         take: limitNumber,
         include: {
             user: {
-                select: { id: true, username: true, profilePictureUrl: true },
+                select: { id: true, username: true, profilePictureUrl: true, name: true },
             },
         },
     });
@@ -403,7 +573,7 @@ export async function getThoughtSavers(req: AuthenticatedRequest, res: Response)
         take: limitNumber,
         include: {
             user: {
-                select: { id: true, username: true, profilePictureUrl: true },
+                select: { id: true, username: true, profilePictureUrl: true, name: true },
             },
         },
     });
