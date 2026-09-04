@@ -31,6 +31,9 @@ async function getConnectedClient() {
 export function profileCacheKey(username: string) {
   return `profile:${encodeURIComponent(username)}`;
 }
+export function searchCacheKey(username: string) {
+  return `search:${encodeURIComponent(username)}`;
+}
 
 export async function getCachedJson<T>(key: string): Promise<T | null> {
   try {

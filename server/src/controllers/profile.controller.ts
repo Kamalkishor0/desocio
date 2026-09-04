@@ -8,6 +8,7 @@ import {
 import {
   getCachedJson,
   profileCacheKey,
+  searchCacheKey,
   setCachedJson,
 } from "../config/redis";
 
@@ -155,22 +156,8 @@ export async function getProfileByUsername(
     friendshipStatus,
   });
 }
-
-export async function getSearchResult(
-  req: AuthenticatedRequest,
-  res: Response
-) {
-  const auth = req.auth;
-  if (!auth) {
-    return res.status(401).json({ message: "Unauthorized" });
-  }
-
-  const username = getSingleString(req.params.username);
-  if (!username) {
-    return res.status(400).json({ message: "Username is required" });
-  }
-
-  const users = await prisma.user.findMany({
+async function findSearchResults(username: string) {
+  return prisma.user.findMany({
     where: {
       username: {
         startsWith: username,
@@ -188,6 +175,33 @@ export async function getSearchResult(
     },
     take: 10,
   });
+}
+export async function getSearchResult(
+  req: AuthenticatedRequest,
+  res: Response
+) {
+  const auth = req.auth;
+  if (!auth) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+
+  const username = getSingleString(req.params.username);
+  if (!username) {
+    return res.status(400).json({ message: "Username is required" });
+  }
+
+  const cachedUsers = await getCachedJson<
+    NonNullable<Awaited<ReturnType<typeof findSearchResults>>>
+  >(searchCacheKey(username));
+  const users = Array.isArray(cachedUsers)
+    ? cachedUsers
+    : await findSearchResults(username);
+
+  if (!users) {
+    return res.status(404).json({ message: "No users found" });
+  }
+
+  await setCachedJson(searchCacheKey(username), users);
 
   res.json({ users });
 }
