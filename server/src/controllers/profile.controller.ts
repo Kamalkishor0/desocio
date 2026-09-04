@@ -5,9 +5,55 @@ import {
   FriendshipStatus,
   type FriendshipStatusType,
 } from "../constants/friendships";
-    
+import {
+  getCachedJson,
+  profileCacheKey,
+  setCachedJson,
+} from "../config/redis";
+
 function getSingleString(value: unknown): string | undefined {
   return typeof value === "string" ? value : undefined;
+}
+
+const profileSelect = {
+  id: true,
+  name: true,
+  username: true,
+  email: true,
+  bio: true,
+  profilePictureUrl: true,
+  createdAt: true,
+  lastSeenAt: true,
+  posts: {
+    orderBy: {
+      createdAt: "desc" as const,
+    },
+    include: {
+      photos: {
+        orderBy: {
+          position: "asc" as const,
+        },
+      },
+    },
+  },
+  thoughts: {
+    orderBy: {
+      createdAt: "desc" as const,
+    },
+  },
+  _count: {
+    select: {
+      userAFriendships: true,
+      userBFriendships: true,
+    },
+  },
+};
+
+async function findProfileByUsername(username: string) {
+  return prisma.user.findUnique({
+    where: { username },
+    select: profileSelect,
+  });
 }
 
 export async function getProfileByUsername(
@@ -24,49 +70,17 @@ export async function getProfileByUsername(
     return res.status(400).json({ message: "Username is required" });
   }
 
-  const profile = await prisma.user.findUnique({
-    where: { username },
-    select: {
-      id: true,
-      name: true,
-      username: true,
-      email: true,
-      bio: true,
-      profilePictureUrl: true,
-      createdAt: true,
-      lastSeenAt: true,
-
-      posts: {
-        orderBy: {
-          createdAt: "desc",
-        },
-        include: {
-          photos: {
-            orderBy: {
-              position: "asc",
-            },
-          },
-        },
-      },
-
-      thoughts: {
-        orderBy: {
-          createdAt: "desc",
-        },
-      },
-
-      _count: {
-        select: {
-          userAFriendships: true,
-          userBFriendships: true,
-        },
-      },
-    },
-  });
+  const cacheKey = profileCacheKey(username);
+  const profile =
+    (await getCachedJson<NonNullable<Awaited<ReturnType<typeof findProfileByUsername>>>>(
+      cacheKey
+    )) ?? (await findProfileByUsername(username));
 
   if (!profile) {
     return res.status(404).json({ message: "User not found" });
   }
+
+  await setCachedJson(cacheKey, profile);
 
   let friendshipStatus: FriendshipStatusType = FriendshipStatus.NONE;
 
