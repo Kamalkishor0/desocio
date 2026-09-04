@@ -34,6 +34,9 @@ export function profileCacheKey(username: string) {
 export function searchCacheKey(username: string) {
   return `search:${encodeURIComponent(username)}`;
 }
+export function signRateLimitCacheKey(ip: string) {
+  return `signRateLimit:${encodeURIComponent(ip)}`;
+}
 
 export async function getCachedJson<T>(key: string): Promise<T | null> {
   try {
@@ -53,7 +56,11 @@ export async function getCachedJson<T>(key: string): Promise<T | null> {
   }
 }
 
-export async function setCachedJson(key: string, value: unknown) {
+export async function setCachedJson(
+  key: string,
+  value: unknown,
+  ttlSeconds = profileCacheTtlSeconds
+) {
   try {
     const client = await getConnectedClient();
     if (!client) {
@@ -61,11 +68,27 @@ export async function setCachedJson(key: string, value: unknown) {
     }
 
     await client.set(key, JSON.stringify(value), {
-      EX: profileCacheTtlSeconds,
+      EX: ttlSeconds,
     });
   } catch (error) {
     console.warn(
       "Redis write failed:",
+      error instanceof Error ? error.message : error
+    );
+  }
+}
+
+export async function deleteCachedJson(key: string) {
+  try {
+    const client = await getConnectedClient();
+    if (!client) {
+      return;
+    }
+
+    await client.del(key);
+  } catch (error) {
+    console.warn(
+      "Redis delete failed:",
       error instanceof Error ? error.message : error
     );
   }

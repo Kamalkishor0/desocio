@@ -14,6 +14,12 @@ import {
 } from "../utils/authTokens";
 import { normalizeEmail } from "../utils/auth";
 import { AuthenticatedRequest } from "../types/auth";
+import {
+    deleteCachedJson,
+    getCachedJson,
+    setCachedJson,
+    signRateLimitCacheKey
+} from "../config/redis";
 
 export async function setUsername(req: AuthenticatedRequest, res: Response) {
     const auth = req.auth;
@@ -51,6 +57,16 @@ export async function setUsername(req: AuthenticatedRequest, res: Response) {
 }
 export async function Login(req: Request, res: Response) {
     // Implementation for login
+    const ip = req.ip || "unknown";
+    const cacheKey = signRateLimitCacheKey(ip);
+    const rateLimitData = await getCachedJson<{ count: number; lastAttempt: number }>(cacheKey);
+    const now = Date.now();
+    if (rateLimitData) {
+        const { count, lastAttempt } = rateLimitData;
+        if (count >= 5 && now - lastAttempt < 15 * 60 * 1000) {
+            return res.status(429).json({ message: "Too many login attempts. Please try again later." });
+        }
+    }
     const {userOrEmail, password} = req.body as{
         userOrEmail: string;
         password: string;
@@ -76,12 +92,15 @@ export async function Login(req: Request, res: Response) {
         });
     }
     if(!user){
-        return res.status(400).json({message: "Invalid email or password"});
+        await setCachedJson(cacheKey, { count: (rateLimitData?.count ?? 0) + 1, lastAttempt: now }, 15 * 60);
+        return res.status(400).json({message: "Invalid username, email or password"});
     }
     const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
     if(!isPasswordValid){
+        await setCachedJson(cacheKey, { count: (rateLimitData?.count ?? 0) + 1, lastAttempt: now }, 15 * 60);
         return res.status(400).json({message: "Invalid username, email or password"});
     }
+    await deleteCachedJson(cacheKey);
     const { accessToken, refreshToken } = await issueTokens({
         id: user.id,
         username: user.username,
