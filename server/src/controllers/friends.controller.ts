@@ -2,6 +2,7 @@ import { Response } from "express";
 import { FriendRequestStatus } from "@prisma/client";
 import prisma from "../config/db";
 import { AuthenticatedRequest } from "../types/auth";
+import { createNotification } from "../service/notifications.service";
 
 export async function getFriends(req: AuthenticatedRequest, res: Response) {
     const auth = req.auth;
@@ -175,8 +176,7 @@ export async function sendFriendRequest(req: AuthenticatedRequest, res: Response
     });
 
     if (
-        existingRequest?.status === "pending" &&
-        existingRequest.senderId === receiverId &&
+        existingRequest?.senderId === receiverId &&
         existingRequest.receiverId === auth.id
     ) {
         const [userAId, userBId] =
@@ -198,11 +198,17 @@ export async function sendFriendRequest(req: AuthenticatedRequest, res: Response
                 where: { id: existingRequest.id }
             })
         ]);
-
+        await createNotification({
+            userId: existingRequest.senderId,
+            actorId: auth.id,
+            type: "friendRequestAccepted",
+            entityId: existingRequest.id,
+            entityType: "friendRequest"
+        });
         return res.status(200).json({ message: "Friend request accepted" });
     }
 
-    if (existingRequest?.status === "pending") {
+    if (existingRequest) {
         return res.status(409).json({ message: "Friend request already pending" });
     }
 
@@ -216,12 +222,20 @@ export async function sendFriendRequest(req: AuthenticatedRequest, res: Response
         }
     });
 
-    await prisma.friendRequest.create({
+    const friendRequest = await prisma.friendRequest.create({
         data: {
             senderId: auth.id,
             receiverId,
             status: "pending"
         }
+    });
+
+    await createNotification({
+        userId: receiverId,
+        actorId: auth.id,
+        type: "friendRequest",
+        entityId: friendRequest.id,
+        entityType: "friendRequest"
     });
 
     return res.status(201).json({ message: "Friend request sent" });
@@ -299,6 +313,14 @@ export async function acceptFriendRequest(req: AuthenticatedRequest, res: Respon
             where: { id: friendRequest.id }
         })
     ]);
+
+    await createNotification({
+        userId: senderId,
+        actorId: auth.id,
+        type: "friendRequestAccepted",
+        entityId: friendRequest.id,
+        entityType: "friendRequest"
+    });
 
     return res.status(200).json({ message: "Friend request accepted" });
 }

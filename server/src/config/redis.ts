@@ -59,7 +59,7 @@ export async function getCachedJson<T>(key: string): Promise<T | null> {
 export async function setCachedJson(
   key: string,
   value: unknown,
-  ttlSeconds = profileCacheTtlSeconds
+  ttlSeconds?: number
 ) {
   try {
     const client = await getConnectedClient();
@@ -68,7 +68,7 @@ export async function setCachedJson(
     }
 
     await client.set(key, JSON.stringify(value), {
-      EX: ttlSeconds,
+      EX: ttlSeconds ?? profileCacheTtlSeconds,
     });
   } catch (error) {
     console.warn(

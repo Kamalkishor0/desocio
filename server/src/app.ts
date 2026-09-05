@@ -10,6 +10,7 @@ import thoughtsRouter from "./routes/thought.routes";
 import { authMiddleware } from "./middlewares/auth.middleware";
 import profileRouter from "./routes/profile.routes";
 import chatRouter from "./routes/chat.routes";
+import notificationsRouter from "./routes/notifications.routes";
 import { errorMiddleware } from "./middlewares/error.middleware";
 const app = express();
 
@@ -33,5 +34,6 @@ app.use("/friends", authMiddleware, friendsRouter);
 app.use("/thoughts", authMiddleware, thoughtsRouter);
 app.use("/profile", authMiddleware, profileRouter);
 app.use("/chat", authMiddleware, chatRouter);
+app.use("/notifications", authMiddleware, notificationsRouter);
 app.use(errorMiddleware);
 export default app;
