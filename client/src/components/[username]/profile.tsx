@@ -4,9 +4,10 @@ import { useEffect, useState } from "react";
 import { api, ApiResponseError } from "@/lib/api";
 import type { AuthUser } from "@/types/auth";
 import type { FeedPost } from "@/lib/api/feed";
-import type { Thought } from "@/lib/api/thought";
+import type { PublicThought, Thought } from "@/lib/api/thought";
 import { formatDate, resolveMediaUrl } from "@/lib/media";
 import { PostModal } from "@/components/post-modal";
+import { PublicThoughtModal } from "@/components/public-thought-modal";
 import { NotFound } from "../not-found";
 import { useAuth } from "@/context/AuthContext";
 import type { FriendshipStatusType } from "@/constants/friendships";
@@ -28,6 +29,7 @@ export function Profile({ username }: { username: string }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedPost, setSelectedPost] = useState<FeedPost | null>(null);
+  const [selectedThought, setSelectedThought] = useState<PublicThought | null>(null);
   const [activeTab, setActiveTab] = useState<"posts" | "thoughts">("posts");
   const router = useRouter();
   const { user: authUser } = useAuth();
@@ -313,14 +315,26 @@ export function Profile({ username }: { username: string }) {
         ) : (
           <div className="space-y-4">
             {thoughts.map((thought) => (
-              <article
+              <button
                 key={thought.id}
+                type="button"
+                onClick={() =>
+                  setSelectedThought({
+                    ...thought,
+                    author: {
+                      id: user.id,
+                      username: user.username,
+                      name: user.name,
+                      profilePictureUrl: user.profilePictureUrl ?? null,
+                    },
+                  })
+                }
                 className="rounded-xl border border-gray-700 bg-[#080809] p-4"
               >
-                <p className="whitespace-pre-wrap text-gray-200">
+                <p className="whitespace-pre-wrap text-left text-gray-200">
                   {thought.text}
                 </p>
-                <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-gray-500">
+                <div className="mt-3 flex flex-wrap items-center gap-2 text-left text-xs text-gray-500">
                   <span className="rounded-full border border-gray-700 px-2 py-0.5 text-gray-300">
                     {thought.type}
                   </span>
@@ -329,7 +343,7 @@ export function Profile({ username }: { username: string }) {
                   </span>
                   <span>{formatDate(thought.createdAt)}</span>
                 </div>
-              </article>
+              </button>
             ))}
           </div>
         )}
@@ -344,6 +358,13 @@ export function Profile({ username }: { username: string }) {
             profilePictureUrl: user.profilePictureUrl,
           }}
           onClose={() => setSelectedPost(null)}
+        />
+      ) : null}
+
+      {selectedThought ? (
+        <PublicThoughtModal
+          thought={selectedThought}
+          onClose={() => setSelectedThought(null)}
         />
       ) : null}
     </div>
