@@ -7,12 +7,13 @@ import {
   type Notification,
 } from "@/lib/api/notifications";
 import { formatDate, resolveMediaUrl } from "@/lib/media";
+import { useRouter } from "next/navigation";
 
 export default function NotificationsPage() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
-
+  const router = useRouter();
   useEffect(() => {
     async function fetchNotifications() {
       try {
@@ -97,7 +98,18 @@ export default function NotificationsPage() {
               )}
               <div className="min-w-0 flex-1">
                 <p className="text-sm leading-6 text-gray-300">
-                  <span className="font-semibold text-white">
+                  <span
+                    className={
+                      notification.actor
+                        ? "cursor-pointer font-semibold text-white hover:underline"
+                        : "font-semibold text-white"
+                    }
+                    onClick={() => {
+                      if (notification.actor?.username) {
+                        router.push(`/home/profile/${notification.actor.username}`);
+                      }
+                    }}
+                  >
                     {notification.actor?.name ?? "DeSocio"}
                   </span>{" "}
                   {getNotificationMessage(notification.type)}
