@@ -2,6 +2,7 @@ import type { Express, Request, Response } from "express";
 import { PostReactionType, PostVisibility } from "@prisma/client";
 import { AuthenticatedRequest } from "../types/auth";
 import prisma from "../config/db";
+import { createNotification } from "../service/notifications.service";
 
 function getSingleString(value: unknown): string | undefined {
     return typeof value === "string" ? value : undefined;
@@ -184,7 +185,13 @@ export async function reactToPost(req: AuthenticatedRequest, res: Response) {
             type: reactionType,
         },
     });
-
+    await createNotification({
+        userId: post.authorId,
+        actorId: auth.id,
+        type: "newPostReaction",
+        entityId: createdReaction.id,
+        entityType: "post"
+    });
     return res.json({
         reaction: createdReaction.type,
     });
@@ -242,6 +249,13 @@ export async function commentOnPost(req: AuthenticatedRequest, res: Response) {
                 select: { id: true, username: true, profilePictureUrl: true },
             },
         },
+    });
+    await createNotification({
+        userId: post.authorId,
+        actorId: auth.id,
+        type: "newPostComment",
+        entityId: comment.id,
+        entityType: "post"
     });
     res.status(201).json(comment);
 }

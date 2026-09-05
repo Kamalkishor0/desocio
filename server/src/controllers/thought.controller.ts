@@ -4,6 +4,7 @@ import { AuthenticatedRequest } from "../types/auth";
 import prisma from "../config/db";
 import { createFeedCursor, parseFeedCursor } from "../utils/cursor";
 import { getPaginationLimit } from "../utils/pagination";
+import { createNotification } from "../service/notifications.service";
 
 function getSingleString(value: unknown): string | undefined {
     return typeof value === "string" ? value : undefined;
@@ -276,6 +277,13 @@ export async function supportThought(req: AuthenticatedRequest, res: Response) {
     const support = await prisma.thoughtSupport.create({
         data: { thoughtId, userId: auth.id },
     });
+    await createNotification({
+        userId: thought.authorId,
+        actorId: auth.id,
+        type: "newThoughtSupport",
+        entityId: support.id,
+        entityType: "thought"
+    });
     return res.status(201).json(support);
 }
 
@@ -411,6 +419,13 @@ export async function commentOnThought(req: AuthenticatedRequest, res: Response)
                 },
             },
         },
+    });
+    await createNotification({
+        userId: thought.authorId,
+        actorId: auth.id,
+        type: "newThoughtComment",
+        entityId: comment.id,
+        entityType: "thought"
     });
     return res.status(201).json(comment);
 }

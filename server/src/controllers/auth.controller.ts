@@ -20,6 +20,7 @@ import {
     setCachedJson,
     signRateLimitCacheKey
 } from "../config/redis";
+import { createNotification } from "../service/notifications.service";
 
 export async function setUsername(req: AuthenticatedRequest, res: Response) {
     const auth = req.auth;
@@ -164,6 +165,10 @@ export async function Register(req: Request, res: Response) {
             username: true,
             createdAt: true
         }
+    });
+    await createNotification({
+        userId: newUser.id,
+        type: "welcome",
     });
     return res.status(201).json({message: "User created successfully", newUser});
 };
