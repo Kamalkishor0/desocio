@@ -1,6 +1,8 @@
 import { Server } from "socket.io";
 import type { Server as HttpServer } from "http";
 import { registerChatHandlers } from "./handlers/chat.handler";
+import { registerNotificationHandlers } from "./handlers/notifications.handler";
+import { configureNotificationEmitter } from "./notifications";
 import { authenticateSocket } from "./auth";
 export let io: Server;
 
@@ -11,6 +13,7 @@ export function initializeSocket(server: HttpServer) {
             credentials: true,
         },
     });
+    configureNotificationEmitter(io);
     io.use((socket, next) => {
         try {
             authenticateSocket(socket);
@@ -27,5 +30,6 @@ export function initializeSocket(server: HttpServer) {
         );
 
         registerChatHandlers(io, socket);
+        registerNotificationHandlers(io, socket);
     });
 }

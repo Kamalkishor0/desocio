@@ -25,4 +25,9 @@ export const notificationsApi = {
   async getNotifications() {
     return request<NotificationsResponse>("/notifications");
   },
+  async markAsRead(notificationId: string) {
+    return request(`/notifications/${notificationId}/read`, {
+      method: "PATCH",
+    });
+  }
 };

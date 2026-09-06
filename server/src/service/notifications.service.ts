@@ -3,6 +3,7 @@ import {
     NotificationEntityType,
     NotificationType
 } from "@prisma/client";
+import { notifyUser } from "../socket/notifications";
 
 type CreateNotificationInput = {
     userId: string;
@@ -15,13 +16,27 @@ type CreateNotificationInput = {
 export async function createNotification(
     data: CreateNotificationInput
 ) {
-    return prisma.notification.create({
+    const notification = await prisma.notification.create({
         data: {
             userId: data.userId,
             actorId: data.actorId,
             type: data.type,
             entityId: data.entityId,
             entityType: data.entityType
+        },
+        include: {
+            actor: {
+                select: {
+                    id: true,
+                    username: true,
+                    name: true,
+                    profilePictureUrl: true
+                }
+            }
         }
     });
+
+    notifyUser(data.userId, notification);
+
+    return notification;
 }

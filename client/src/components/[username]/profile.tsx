@@ -131,6 +131,16 @@ export function Profile({ username }: { username: string }) {
       console.error(err);
     }
   };
+  const handleAcceptFriend = async () => {
+    if (!user) return;
+
+    try {
+      await api.acceptFriendRequest(user.id);
+      setFriendshipStatus("friends");
+    } catch (err) {
+      console.error(err);
+    }
+  };
   const handleFriendsClick = () => {
     if (!isOwnProfile) return;
     router.push("/home/friends");
@@ -210,6 +220,7 @@ export function Profile({ username }: { username: string }) {
               {friendshipStatus === "pending_received" && (
                 <button
                   type="button"
+                  onClick={handleAcceptFriend}
                   className="shrink-0 rounded-full bg-white px-5 py-2 text-sm font-medium text-[#080809] transition hover:bg-gray-200"
                 >
                   Accept Request

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Bell, CheckCheck } from "lucide-react";
 import {
   notificationsApi,
@@ -8,17 +8,40 @@ import {
 } from "@/lib/api/notifications";
 import { formatDate, resolveMediaUrl } from "@/lib/media";
 import { useRouter } from "next/navigation";
+import { useSocket } from "@/context/SocketContext";
 
 export default function NotificationsPage() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const router = useRouter();
+  const socket = useSocket();
+  const notificationsRef = useRef(notifications);
+
+  useEffect(() => {
+    notificationsRef.current = notifications;
+  }, [notifications]);
+
+  useEffect(() => {
+    return () => {
+      const unreadNotifications = notificationsRef.current.filter(
+        (notification) => !notification.isRead
+      );
+
+      void Promise.all(
+        unreadNotifications.map((notification) =>
+          notificationsApi.markAsRead(notification.id)
+        )
+      ).catch((error) => {
+        console.error("Error marking notifications as read:", error);
+      });
+    };
+  }, []);
+
   useEffect(() => {
     async function fetchNotifications() {
       try {
         const response = await notificationsApi.getNotifications();
-
         setNotifications(response.notifications);
       } catch (error) {
         console.error("Error fetching notifications:", error);
@@ -30,6 +53,24 @@ export default function NotificationsPage() {
 
     fetchNotifications();
   }, []);
+
+  useEffect(() => {
+    function handleNewNotification(notification: Notification) {
+      setNotifications((current) => {
+        if (current.some((item) => item.id === notification.id)) {
+          return current;
+        }
+
+        return [notification, ...current];
+      });
+    }
+
+    socket.on("notifications:new", handleNewNotification);
+
+    return () => {
+      socket.off("notifications:new", handleNewNotification);
+    };
+  }, [socket]);
 
   if (loading) {
     return (
