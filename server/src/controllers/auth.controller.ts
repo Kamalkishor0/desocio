@@ -21,6 +21,197 @@ import {
     signRateLimitCacheKey
 } from "../config/redis";
 import { createNotification } from "../service/notifications.service";
+import crypto from "crypto";
+
+const GOOGLE_STATE_COOKIE = "google_oauth_state";
+const GOOGLE_PENDING_COOKIE = "google_oauth_pending";
+
+function googleRedirectUri() {
+    return process.env.GOOGLE_REDIRECT_URI || `${process.env.SERVER_URL || "http://localhost:3001"}/auth/google/callback`;
+}
+
+function clientRedirect(path: string) {
+    return `${process.env.CLIENT_URL || "http://localhost:3000"}${path}`;
+}
+
+function googleUsername(name: string, email: string) {
+    const base = (name || email.split("@")[0]).toLowerCase().replace(/[^a-z0-9_]/g, "").slice(0, 24) || "user";
+    return base.length >= 3 ? base : `${base}user`.slice(0, 30);
+}
+
+async function uniqueGoogleUsername(name: string, email: string) {
+    const base = googleUsername(name, email);
+    let username = base;
+    let suffix = 0;
+    while (await prisma.user.findUnique({ where: { username }, select: { id: true } })) {
+        suffix += 1;
+        username = `${base.slice(0, 30 - String(suffix).length - 1)}_${suffix}`;
+    }
+    return username;
+}
+
+export function GoogleStart(_req: Request, res: Response) {
+    const clientId = process.env.GOOGLE_CLIENT_ID;
+    if (!clientId || !process.env.GOOGLE_CLIENT_SECRET) {
+        return res.status(503).json({ message: "Google sign-in is not configured" });
+    }
+    const state = crypto.randomBytes(32).toString("hex");
+    res.cookie(GOOGLE_STATE_COOKIE, state, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        maxAge: 10 * 60 * 1000
+    });
+    const params = new URLSearchParams({
+        client_id: clientId,
+        redirect_uri: googleRedirectUri(),
+        response_type: "code",
+        scope: "openid email profile",
+        state,
+        prompt: "select_account"
+    });
+    return res.redirect(`https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`);
+}
+
+export async function GoogleCallback(req: Request, res: Response) {
+    const { code, state } = req.query as { code?: string; state?: string };
+    const savedState = req.cookies?.[GOOGLE_STATE_COOKIE] as string | undefined;
+    res.clearCookie(GOOGLE_STATE_COOKIE);
+    if (!code || !state || !savedState || state !== savedState) {
+        return res.redirect(clientRedirect("/?authError=invalid_google_state"));
+    }
+    try {
+        const tokenResponse = await fetch("https://oauth2.googleapis.com/token", {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: new URLSearchParams({
+                code,
+                client_id: process.env.GOOGLE_CLIENT_ID || "",
+                client_secret: process.env.GOOGLE_CLIENT_SECRET || "",
+                redirect_uri: googleRedirectUri(),
+                grant_type: "authorization_code"
+            })
+        });
+        if (!tokenResponse.ok) throw new Error("Google token exchange failed");
+        const tokens = await tokenResponse.json() as { access_token?: string };
+        if (!tokens.access_token) throw new Error("Google access token missing");
+        const profileResponse = await fetch("https://openidconnect.googleapis.com/v1/userinfo", {
+            headers: { Authorization: `Bearer ${tokens.access_token}` }
+        });
+        if (!profileResponse.ok) throw new Error("Google profile request failed");
+        const profile = await profileResponse.json() as { email?: string; email_verified?: boolean; name?: string; picture?: string };
+        if (!profile.email || !profile.email_verified) throw new Error("Google email is not verified");
+        const email = normalizeEmail(profile.email);
+        const existingUser = await prisma.user.findUnique({ where: { email } });
+        if (existingUser) {
+            const { accessToken, refreshToken } = await issueTokens(existingUser);
+            setAccessCookie(res, accessToken);
+            setRefreshCookie(res, refreshToken);
+            return res.redirect(clientRedirect("/home"));
+        }
+        res.cookie(GOOGLE_PENDING_COOKIE, JSON.stringify({
+            email,
+            name: profile.name?.trim() || email.split("@")[0],
+            picture: profile.picture || null
+        }), {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "lax",
+            maxAge: 10 * 60 * 1000
+        });
+        return res.redirect(clientRedirect("/?auth=google&step=complete"));
+    } catch {
+        return res.redirect(clientRedirect("/?authError=google_sign_in_failed"));
+    }
+}
+
+export async function GoogleComplete(req: Request, res: Response) {
+    const pendingData = req.cookies?.[GOOGLE_PENDING_COOKIE] as string | undefined;
+    if (!pendingData) {
+        return res.status(400).json({ message: "Google sign-up session expired. Please try again." });
+    }
+
+    let payload: { email?: string; name?: string; picture?: string };
+    try {
+        payload = JSON.parse(pendingData) as { email?: string; name?: string; picture?: string };
+    } catch {
+        res.clearCookie(GOOGLE_PENDING_COOKIE);
+        return res.status(400).json({ message: "Invalid Google sign-up session." });
+    }
+
+    const { name, username, password, confirmPassword } = req.body as { name?: string; username?: string; password?: string; confirmPassword?: string };
+    const nextName = typeof name === "string" ? name.trim() : "";
+    const nextUsername = typeof username === "string" ? username.trim().toLowerCase() : "";
+    const nextPassword = typeof password === "string" ? password : "";
+    const nextConfirmPassword = typeof confirmPassword === "string" ? confirmPassword : "";
+
+    if (!payload.email || !nextName || !nextUsername) {
+        return res.status(400).json({ message: "Name and username are required" });
+    }
+    if (nextName.length < 2 || nextName.length > 100) {
+        return res.status(400).json({ message: "Name must be between 2 and 100 characters" });
+    }
+    if (nextUsername.length < 3 || nextUsername.length > 32) {
+        return res.status(400).json({ message: "Username must be between 3 and 32 characters long" });
+    }
+    if (!/^[a-z0-9_]+$/.test(nextUsername)) {
+        return res.status(400).json({ message: "Username can only contain lowercase letters, numbers and underscores" });
+    }
+    if (!nextPassword || !nextConfirmPassword) {
+        return res.status(400).json({ message: "Password and confirm password are required" });
+    }
+    if (nextPassword.length < 8) {
+        return res.status(400).json({ message: "Password must be at least 8 characters long" });
+    }
+    if (!/[A-Z]/.test(nextPassword) || !/[a-z]/.test(nextPassword) || !/[0-9]/.test(nextPassword)) {
+        return res.status(400).json({ message: "Password must contain at least one uppercase letter, one lowercase letter and one number" });
+    }
+    if (nextPassword !== nextConfirmPassword) {
+        return res.status(400).json({ message: "Passwords do not match" });
+    }
+
+    const normalizedEmail = normalizeEmail(payload.email);
+    const existingEmailUser = await prisma.user.findUnique({ where: { email: normalizedEmail } });
+    if (existingEmailUser) {
+        res.clearCookie(GOOGLE_PENDING_COOKIE);
+        const { accessToken, refreshToken } = await issueTokens(existingEmailUser);
+        setAccessCookie(res, accessToken);
+        setRefreshCookie(res, refreshToken);
+        return res.status(200).json({ message: "Google sign-in successful", user: existingEmailUser });
+    }
+
+    const existingUsername = await prisma.user.findUnique({ where: { username: nextUsername } });
+    if (existingUsername) {
+        return res.status(409).json({ message: "Username already taken" });
+    }
+
+    const passwordHash = await bcrypt.hash(nextPassword, 10);
+    const newUser = await prisma.user.create({
+        data: {
+            email: normalizedEmail,
+            name: nextName,
+            username: nextUsername,
+            passwordHash,
+            profilePictureUrl: payload.picture || null
+        },
+        select: {
+            id: true,
+            name: true,
+            username: true,
+            email: true,
+            createdAt: true,
+            profilePictureUrl: true,
+            bio: true,
+            lastSeenAt: true
+        }
+    });
+    await createNotification({ userId: newUser.id, type: "welcome" });
+    res.clearCookie(GOOGLE_PENDING_COOKIE);
+    const { accessToken, refreshToken } = await issueTokens(newUser);
+    setAccessCookie(res, accessToken);
+    setRefreshCookie(res, refreshToken);
+    return res.status(201).json({ message: "Google account created successfully", user: newUser });
+}
 
 export async function setUsername(req: AuthenticatedRequest, res: Response) {
     const auth = req.auth;

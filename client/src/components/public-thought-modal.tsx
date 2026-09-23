@@ -307,8 +307,9 @@ export function PublicThoughtModal({ thought, onClose }: Props) {
                 type="button"
                 onClick={toggleSupport}
                 disabled={togglingSupport}
+                aria-pressed={isSupported}
                 className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm transition ${isSupported
-                  ? "border-gray-500 bg-[#080809] text-white"
+                  ? "border-white bg-white text-[#080809] ring-2 ring-gray-500/50"
                   : "border-gray-700 text-gray-300 hover:bg-[#080809]"
                   }`}
               >
@@ -320,8 +321,9 @@ export function PublicThoughtModal({ thought, onClose }: Props) {
                 type="button"
                 onClick={toggleSave}
                 disabled={togglingSave}
+                aria-pressed={isSaved}
                 className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm transition ${isSaved
-                  ? "border-gray-500 bg-[#080809] text-white"
+                  ? "border-white bg-white text-[#080809] ring-2 ring-gray-500/50"
                   : "border-gray-700 text-gray-300 hover:bg-[#080809]"
                   }`}
               >

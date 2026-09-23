@@ -1,4 +1,4 @@
-import { Login, Logout, Refresh, Register, setUsername, me } from "../controllers/auth.controller";
+import { GoogleCallback, GoogleComplete, GoogleStart, Login, Logout, Refresh, Register, setUsername, me } from "../controllers/auth.controller";
 import { Router } from "express";
 import { authMiddleware } from "../middlewares/auth.middleware";
 import {
@@ -11,6 +11,9 @@ import {
 const authRouter = Router();
 
 authRouter.post("/login", loginLimiter, Login);
+authRouter.get("/google", GoogleStart);
+authRouter.get("/google/callback", GoogleCallback);
+authRouter.post("/google/complete", GoogleComplete);
 authRouter.post("/username", authMiddleware, setUsername);
 authRouter.post("/register", registerLimiter, Register);
 authRouter.post("/refresh", refreshLimiter, Refresh);

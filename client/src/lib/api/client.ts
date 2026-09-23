@@ -20,7 +20,7 @@ export type RequestOptions = Omit<RequestInit, "body"> & {
   body?: RequestBody;
 };
 
-const API_BASE_URL =
+export const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
 
 let refreshPromise: Promise<void> | null = null;

@@ -325,7 +325,7 @@ export function PostModal({ post, author, onClose, onReactionChange }: PostModal
                     onClick={() => toggleReaction(type)}
                     className={`flex items-center gap-1 rounded-full border px-3 py-1.5 text-sm transition ${
                       active
-                        ? "border-gray-500 bg-[#080809] text-white"
+                        ? "border-white bg-white text-[#080809] ring-2 ring-gray-500/50"
                         : "border-gray-700 text-gray-300 hover:bg-[#080809]"
                     }`}
                   >

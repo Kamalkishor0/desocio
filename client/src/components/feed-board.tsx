@@ -114,8 +114,7 @@ export function FeedBoard() {
         </h2>
 
         <p className="mt-3 max-w-md text-gray-400">
-          Add friends and ask them to share posts. Once they do,
-          they'll appear here.
+          Add friends....
         </p>
       </div>
     );

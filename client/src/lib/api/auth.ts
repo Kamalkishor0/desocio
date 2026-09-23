@@ -1,4 +1,4 @@
-import { request } from "./client";
+import { API_BASE_URL, request } from "./client";
 import type { AuthUser } from "../../types/auth";
 
 const AUTH = {
@@ -30,6 +30,18 @@ export interface RegisterResponse {
   user: AuthUser;
 }
 
+export type GoogleCompleteRequest = {
+  name: string;
+  username: string;
+  password: string;
+  confirmPassword: string;
+};
+
+export interface GoogleCompleteResponse {
+  message: string;
+  user: AuthUser;
+}
+
 export const authApi = {
   login(body: LoginRequest) {
     return request<LoginResponse>(AUTH.LOGIN, {
@@ -43,10 +55,19 @@ export const authApi = {
       body,
     });
   },
+  googleComplete(body: GoogleCompleteRequest) {
+    return request<GoogleCompleteResponse>("/auth/google/complete", {
+      method: "POST",
+      body,
+    });
+  },
   me() {
     return request<{ user: AuthUser }>(AUTH.ME);
   },
   logout() {
     return request<{ message: string }>(AUTH.LOGOUT, { method: "POST" });
+  },
+  googleUrl() {
+    return `${API_BASE_URL}/auth/google`;
   },
 };

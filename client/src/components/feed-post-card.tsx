@@ -174,8 +174,10 @@ export function FeedPostCard({ post }: Props) {
                                 <button
                                     key={type}
                                     onClick={() => toggleReaction(type)}
+                                    aria-label={`React with ${type}`}
+                                    aria-pressed={active}
                                     className={`rounded-full border p-2 transition ${active
-                                        ? "border-gray-500 bg-[#080809] text-white"
+                                        ? "border-white bg-white text-[#080809] ring-2 ring-gray-500/50"
                                         : "border-gray-700 text-gray-300 hover:bg-[#080809]"
                                         }`}
                                 >
