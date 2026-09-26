@@ -5,6 +5,7 @@ import { friendsApi } from "./friends";
 import { thoughtApi } from "./thought";
 import { profileApi } from "./profile";
 import {notificationsApi} from "./notifications";
+import { inviteApi } from "./invite";
 // Combine individual APIs into a single object for backwards compatibility
 export const api = {
   ...profileApi,
@@ -14,6 +15,7 @@ export const api = {
   ...friendsApi,
   ...thoughtApi,
   ...notificationsApi,
+  ...inviteApi,
 };
 
 // Re-export type definitions and methods for individual imports
@@ -25,3 +27,4 @@ export * from "./post";
 export * from "./friends";
 export * from "./thought";
 export * from "./notifications";
+export * from "./invite";

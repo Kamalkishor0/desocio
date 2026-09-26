@@ -11,6 +11,7 @@ import { authMiddleware } from "./middlewares/auth.middleware";
 import profileRouter from "./routes/profile.routes";
 import chatRouter from "./routes/chat.routes";
 import notificationsRouter from "./routes/notifications.routes";
+import inviteRouter from "./routes/invite.routes";
 import { errorMiddleware } from "./middlewares/error.middleware";
 const app = express();
 
@@ -28,6 +29,7 @@ app.get("/", (_req, res) => {
 	res.json({ message: "Server is running" });
 });
 app.use("/auth",authRouter);
+app.use("/invite", inviteRouter);
 app.use("/feed", authMiddleware, feedRouter);
 app.use("/posts", authMiddleware, postRouter);
 app.use("/friends", authMiddleware, friendsRouter);

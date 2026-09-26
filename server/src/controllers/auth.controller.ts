@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import { FriendRequestStatus } from "@prisma/client";
 import prisma from "../config/db";
 import bcrypt from "bcrypt";
 import { hashRefreshToken, signAccessToken, signRefreshToken, verifyRefreshToken } from "../utils/jwt";
@@ -25,6 +26,51 @@ import crypto from "crypto";
 
 const GOOGLE_STATE_COOKIE = "google_oauth_state";
 const GOOGLE_PENDING_COOKIE = "google_oauth_pending";
+const REFERRAL_COOKIE = "referral_code";
+
+async function applyReferralCode(req: Request, res: Response, receiverId: string) {
+    const referralCode = req.cookies?.[REFERRAL_COOKIE] as string | undefined;
+    if (!referralCode) return;
+
+    try {
+        const inviter = await prisma.user.findUnique({
+            where: { referralCode },
+            select: { id: true },
+        });
+
+        if (inviter && inviter.id !== receiverId) {
+            const existing = await prisma.friendRequest.findFirst({
+                where: {
+                    OR: [
+                        { senderId: inviter.id, receiverId },
+                        { senderId: receiverId, receiverId: inviter.id },
+                    ],
+                    status: FriendRequestStatus.pending,
+                },
+                select: { id: true },
+            });
+
+            if (!existing) {
+                const request = await prisma.friendRequest.create({
+                    data: { senderId: inviter.id, receiverId, status: FriendRequestStatus.pending },
+                });
+                await createNotification({
+                    userId: receiverId,
+                    actorId: inviter.id,
+                    type: "friendRequest",
+                    entityId: request.id,
+                    entityType: "friendRequest",
+                });
+            }
+        }
+    } finally {
+        res.clearCookie(REFERRAL_COOKIE, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "lax",
+        });
+    }
+}
 
 function googleRedirectUri() {
     return process.env.GOOGLE_REDIRECT_URI || `${process.env.SERVER_URL || "http://localhost:3001"}/auth/google/callback`;
@@ -198,6 +244,7 @@ export async function GoogleComplete(req: Request, res: Response) {
             id: true,
             name: true,
             username: true,
+            referralCode: true,
             email: true,
             createdAt: true,
             profilePictureUrl: true,
@@ -206,6 +253,7 @@ export async function GoogleComplete(req: Request, res: Response) {
         }
     });
     await createNotification({ userId: newUser.id, type: "welcome" });
+    await applyReferralCode(req, res, newUser.id);
     res.clearCookie(GOOGLE_PENDING_COOKIE);
     const { accessToken, refreshToken } = await issueTokens(newUser);
     setAccessCookie(res, accessToken);
@@ -361,6 +409,7 @@ export async function Register(req: Request, res: Response) {
         userId: newUser.id,
         type: "welcome",
     });
+    await applyReferralCode(req, res, newUser.id);
     return res.status(201).json({message: "User created successfully", newUser});
 };
 
@@ -447,6 +496,7 @@ export async function me(req: AuthenticatedRequest, res: Response) {
             id: true,
             name: true,
             username: true,
+            referralCode: true,
             email: true,
             createdAt : true,
             lastSeenAt : true,
