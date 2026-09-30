@@ -295,6 +295,89 @@ export async function setUsername(req: AuthenticatedRequest, res: Response) {
 
     return res.status(200).json({ message: "Username updated", user: updated });
 }
+
+function accountSelect() {
+    return {
+        id: true,
+        name: true,
+        username: true,
+        referralCode: true,
+        email: true,
+        createdAt: true,
+        lastSeenAt: true,
+        profilePictureUrl: true,
+        bio: true,
+        showOnlineStatus: true
+    } as const;
+}
+
+export async function updateAccount(req: AuthenticatedRequest, res: Response) {
+    const auth = req.auth;
+    if (!auth) return res.status(401).json({ message: "Unauthorized" });
+
+    const body = req.body as {
+        name?: unknown;
+        username?: unknown;
+        bio?: unknown;
+        profilePictureUrl?: unknown;
+        showOnlineStatus?: unknown;
+    };
+    const data: Record<string, unknown> = {};
+
+    if (body.name !== undefined) {
+        const name = typeof body.name === "string" ? body.name.trim() : "";
+        if (name.length < 2 || name.length > 100) return res.status(400).json({ message: "Name must be between 2 and 100 characters" });
+        data.name = name;
+    }
+    if (body.username !== undefined) {
+        const username = typeof body.username === "string" ? body.username.trim().toLowerCase() : "";
+        if (!/^[a-z0-9_]{3,32}$/.test(username)) return res.status(400).json({ message: "Username must be 3-32 characters and use only letters, numbers, and underscores" });
+        const existing = await prisma.user.findUnique({ where: { username }, select: { id: true } });
+        if (existing && existing.id !== auth.id) return res.status(409).json({ message: "Username already taken" });
+        data.username = username;
+    }
+    for (const field of ["bio", "profilePictureUrl"] as const) {
+        if (body[field] !== undefined) {
+            if (typeof body[field] !== "string") return res.status(400).json({ message: `${field} must be text` });
+            data[field] = body[field].trim() || null;
+        }
+    }
+    if (body.showOnlineStatus !== undefined) {
+        if (typeof body.showOnlineStatus !== "boolean") return res.status(400).json({ message: "showOnlineStatus must be boolean" });
+        data.showOnlineStatus = body.showOnlineStatus;
+    }
+
+    const user = await prisma.user.update({ where: { id: auth.id }, data, select: accountSelect() });
+    return res.json({ message: "Account updated", user });
+}
+
+export async function changePassword(req: AuthenticatedRequest, res: Response) {
+    const auth = req.auth;
+    if (!auth) return res.status(401).json({ message: "Unauthorized" });
+    const { currentPassword, newPassword, confirmPassword } = req.body as Record<string, unknown>;
+    if (typeof currentPassword !== "string" || typeof newPassword !== "string" || typeof confirmPassword !== "string") return res.status(400).json({ message: "All password fields are required" });
+    const user = await prisma.user.findUnique({ where: { id: auth.id }, select: { passwordHash: true } });
+    if (!user || !(await bcrypt.compare(currentPassword, user.passwordHash))) return res.status(400).json({ message: "Current password is incorrect" });
+    if (newPassword.length < 8 || !/[A-Z]/.test(newPassword) || !/[a-z]/.test(newPassword) || !/[0-9]/.test(newPassword)) return res.status(400).json({ message: "Password must be 8+ characters with uppercase, lowercase, and a number" });
+    if (newPassword !== confirmPassword) return res.status(400).json({ message: "Passwords do not match" });
+    await prisma.user.update({ where: { id: auth.id }, data: { passwordHash: await bcrypt.hash(newPassword, 10) } });
+    return res.json({ message: "Password changed" });
+}
+
+export async function deleteAccount(req: AuthenticatedRequest, res: Response) {
+    const auth = req.auth;
+    if (!auth) return res.status(401).json({ message: "Unauthorized" });
+    const { password } = req.body as { password?: unknown };
+    const user = await prisma.user.findUnique({ where: { id: auth.id }, select: { passwordHash: true } });
+    if (!user || typeof password !== "string" || !(await bcrypt.compare(password, user.passwordHash))) return res.status(400).json({ message: "Password is incorrect" });
+    await prisma.$transaction([
+        prisma.refreshToken.updateMany({ where: { userId: auth.id, revokedAt: null }, data: { revokedAt: new Date() } }),
+        prisma.user.update({ where: { id: auth.id }, data: { accountStatus: "deleted", name: "Deleted user", username: `deleted_${auth.id.slice(-8)}`, email: `deleted_${auth.id}@deleted.local`, bio: null, profilePictureUrl: null } })
+    ]);
+    clearAccessCookie(res);
+    clearRefreshCookie(res);
+    return res.json({ message: "Account deleted" });
+}
 export async function Login(req: Request, res: Response) {
     // Implementation for login
     const ip = req.ip || "unknown";
@@ -334,6 +417,9 @@ export async function Login(req: Request, res: Response) {
     if(!user){
         await setCachedJson(cacheKey, { count: (rateLimitData?.count ?? 0) + 1, lastAttempt: now }, 15 * 60);
         return res.status(400).json({message: "Invalid username, email or password"});
+    }
+    if (user.accountStatus !== "active") {
+        return res.status(403).json({ message: "This account is not available" });
     }
     const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
     if(!isPasswordValid){
@@ -501,7 +587,8 @@ export async function me(req: AuthenticatedRequest, res: Response) {
             createdAt : true,
             lastSeenAt : true,
             profilePictureUrl : true,
-            bio : true
+            bio : true,
+            showOnlineStatus: true
         }
     });
     if (!user) {

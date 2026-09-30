@@ -25,6 +25,7 @@ const profileSelect = {
   profilePictureUrl: true,
   createdAt: true,
   lastSeenAt: true,
+  showOnlineStatus: true,
   posts: {
     orderBy: {
       createdAt: "desc" as const,
@@ -150,7 +151,7 @@ export async function getProfileByUsername(
       bio: profile.bio,
       profilePictureUrl: profile.profilePictureUrl,
       createdAt: profile.createdAt,
-      lastSeenAt: profile.lastSeenAt,
+      lastSeenAt: profile.showOnlineStatus ? profile.lastSeenAt : null,
     },
     posts: canViewContent ? profile.posts : [],
     thoughts: canViewContent ? profile.thoughts : [],

@@ -67,6 +67,15 @@ export const authApi = {
   logout() {
     return request<{ message: string }>(AUTH.LOGOUT, { method: "POST" });
   },
+  updateAccount(body: Partial<Pick<AuthUser, "name" | "username" | "bio" | "profilePictureUrl" | "showOnlineStatus">>) {
+    return request<{ message: string; user: AuthUser }>("/auth/account", { method: "PATCH", body });
+  },
+  changePassword(body: { currentPassword: string; newPassword: string; confirmPassword: string }) {
+    return request<{ message: string }>("/auth/password", { method: "POST", body });
+  },
+  deleteAccount(password: string) {
+    return request<{ message: string }>("/auth/account", { method: "DELETE", body: { password } });
+  },
   googleUrl() {
     return `${API_BASE_URL}/auth/google`;
   },

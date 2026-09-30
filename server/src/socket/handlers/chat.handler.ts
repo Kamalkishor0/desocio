@@ -1,6 +1,7 @@
 import type { Server, Socket } from "socket.io";
 import * as chatService from "../../service/chat.service";
 import { ApiError } from "../../utils/ApiError";
+import prisma from "../../config/db";
 
 type JoinConversationPayload = {
     conversationId: string;
@@ -30,6 +31,14 @@ function emitSocketError(socket: Socket, error: unknown) {
     });
 }
 
+async function canSharePresence(userId: string) {
+    const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { showOnlineStatus: true },
+    });
+    return user?.showOnlineStatus ?? false;
+}
+
 export function registerChatHandlers(
     io: Server,
     socket: Socket
@@ -53,16 +62,18 @@ export function registerChatHandlers(
 
             const roomSockets = await io.in(conversationId).fetchSockets();
             for (const roomSocket of roomSockets) {
-                if (roomSocket.id !== socket.id) {
+                if (roomSocket.id !== socket.id && await canSharePresence(roomSocket.data.user.id)) {
                     socket.emit("chat:user-online", {
                         userId: roomSocket.data.user.id,
                     });
                 }
             }
 
-            socket.to(conversationId).emit("chat:user-online", {
-                userId: socket.data.user.id,
-            });
+            if (await canSharePresence(socket.data.user.id)) {
+                socket.to(conversationId).emit("chat:user-online", {
+                    userId: socket.data.user.id,
+                });
+            }
 
             console.log("ROOMS:", [...socket.rooms]);
 
@@ -77,11 +88,13 @@ export function registerChatHandlers(
 
     socket.on(
         "chat:leave",
-        ({ conversationId }: LeaveConversationPayload) => {
-            socket.to(conversationId).emit("chat:user-offline", {
-                userId: socket.data.user.id,
-            });
-            socket.leave(conversationId);
+        async ({ conversationId }: LeaveConversationPayload) => {
+            if (await canSharePresence(socket.data.user.id)) {
+                socket.to(conversationId).emit("chat:user-offline", {
+                    userId: socket.data.user.id,
+                });
+            }
+            await socket.leave(conversationId);
 
             socket.emit("chat:left", {
                 conversationId,
@@ -125,15 +138,15 @@ export function registerChatHandlers(
     );
 
     socket.on("disconnect", () => {
-        for (const room of socket.rooms) {
-            if (room !== socket.id) {
-                socket.to(room).emit("chat:user-offline", {
-                    userId: socket.data.user.id,
-                });
+        canSharePresence(socket.data.user.id).then((visible) => {
+            for (const room of socket.rooms) {
+                if (visible && room !== socket.id) {
+                    socket.to(room).emit("chat:user-offline", {
+                        userId: socket.data.user.id,
+                    });
+                }
             }
-        }
-        console.log(
-            `Chat socket disconnected: ${socket.data.user.username}`
-        );
+            console.log(`Chat socket disconnected: ${socket.data.user.username}`);
+        }).catch(emitSocketError.bind(null, socket));
     });
 }

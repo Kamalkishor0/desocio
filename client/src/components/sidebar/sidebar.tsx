@@ -54,6 +54,7 @@ export function Sidebar({ expanded }: SidebarProps) {
         break;
 
       case "settings":
+        router.push("/home/settings");
         break;
 
       case "logout":

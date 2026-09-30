@@ -8,4 +8,5 @@ export interface AuthUser {
   lastSeenAt?: string | null;
   profilePictureUrl?: string | null;
   bio?: string | null;
+  showOnlineStatus?: boolean;
 }

@@ -63,6 +63,7 @@ model User {
 
   profilePictureUrl String? @map("profile_picture_url")
   bio               String?
+  showOnlineStatus  Boolean @default(true) @map("show_online_status")
 
   accountStatus AccountStatus @default(active) @map("account_status")
 

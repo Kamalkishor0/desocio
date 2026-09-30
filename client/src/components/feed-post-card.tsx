@@ -11,7 +11,6 @@ import {
     Laugh,
     MessageCircle,
     MoreVertical,
-    Share2,
     Trash2,
 } from "lucide-react";
 
@@ -258,12 +257,6 @@ export function FeedPostCard({ post, onDeleted }: Props) {
                             className="rounded-full border border-gray-700 p-2 text-gray-300 transition hover:bg-[#080809]"
                         >
                             <MessageCircle size={18} />
-                        </button>
-
-                        <button
-                            className="rounded-full border border-gray-700 p-2 text-gray-300 transition hover:bg-[#080809]"
-                        >
-                            <Share2 size={18} />
                         </button>
 
                     </div>
