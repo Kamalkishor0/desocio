@@ -4,6 +4,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { thoughtApi, type PublicThought, type ThoughtType } from "@/lib/api/thought";
 import { formatDate, resolveMediaUrl } from "@/lib/media";
 import { PublicThoughtModal } from "@/components/public-thought-modal";
+import { useAuth } from "@/context/AuthContext";
+import { MoreVertical, Trash2 } from "lucide-react";
 
 const THOUGHT_TYPES: { value: ThoughtType; label: string }[] = [
   { value: "thoughts", label: "Thoughts" },
@@ -18,6 +20,7 @@ function initialFor(thought: PublicThought) {
 }
 
 export function PublicThoughtFeed() {
+  const { user } = useAuth();
   const [activeType, setActiveType] = useState<ThoughtType>("thoughts");
   const [thoughts, setThoughts] = useState<PublicThought[]>([]);
   const [selectedThought, setSelectedThought] = useState<PublicThought | null>(null);
@@ -25,6 +28,8 @@ export function PublicThoughtFeed() {
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasLoaded, setHasLoaded] = useState(false);
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const loaderRef = useRef<HTMLDivElement | null>(null);
 
   const loadThoughts = useCallback(async () => {
@@ -71,6 +76,22 @@ export function PublicThoughtFeed() {
       setLoadingMore(false);
     }
   }, [activeType, loadingMore, nextCursor]);
+
+  async function handleDelete(thoughtId: string) {
+    if (deletingId) return;
+
+    setDeletingId(thoughtId);
+    try {
+      await thoughtApi.delete(thoughtId);
+      setThoughts((current) => current.filter((thought) => thought.id !== thoughtId));
+      setSelectedThought((current) => current?.id === thoughtId ? null : current);
+    } catch (error) {
+      console.error("Failed to delete thought:", error);
+    } finally {
+      setDeletingId(null);
+      setOpenMenuId(null);
+    }
+  }
 
   useEffect(() => {
     const node = loaderRef.current;
@@ -139,12 +160,12 @@ export function PublicThoughtFeed() {
           {thoughts.map((thought) => {
             const avatar = resolveMediaUrl(thought.author.profilePictureUrl);
 
+            const isOwner = user?.id === thought.author.id;
+
             return (
-              <button
+              <div
                 key={thought.id}
                 className="block w-full rounded-2xl border border-gray-700 bg-[#080809] p-5 text-left transition hover:border-gray-600 hover:bg-[#080809]"
-                type="button"
-                onClick={() => setSelectedThought(thought)}
               >
                 <div className="flex items-center gap-3">
                   {avatar ? (
@@ -159,7 +180,11 @@ export function PublicThoughtFeed() {
                     </div>
                   )}
 
-                  <div className="min-w-0 flex-1">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedThought(thought)}
+                    className="min-w-0 flex-1 text-left"
+                  >
                     <p className="truncate font-semibold text-white">
                       {thought.author.name}
                     </p>
@@ -168,17 +193,48 @@ export function PublicThoughtFeed() {
                       <span>•</span>
                       <span className="text-xs">{formatDate(thought.createdAt)}</span>
                     </div>
-                  </div>
+                  </button>
 
                   <span className="rounded-full border border-gray-700 px-3 py-1 text-xs text-gray-300">
                     {thought.type}
                   </span>
+
+                  {isOwner ? (
+                    <div className="relative shrink-0">
+                      <button
+                        type="button"
+                        aria-label="Thought options"
+                        aria-expanded={openMenuId === thought.id}
+                        onClick={() => setOpenMenuId((current) => current === thought.id ? null : thought.id)}
+                        className="rounded-full p-2 text-gray-400 transition hover:bg-gray-800 hover:text-white"
+                      >
+                        <MoreVertical size={18} />
+                      </button>
+                      {openMenuId === thought.id ? (
+                        <div className="absolute right-0 top-10 z-10 min-w-32 rounded-xl border border-gray-700 bg-[#111113] p-1 shadow-xl">
+                          <button
+                            type="button"
+                            disabled={deletingId === thought.id}
+                            onClick={() => handleDelete(thought.id)}
+                            className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-red-300 transition hover:bg-red-400/10 disabled:opacity-50"
+                          >
+                            <Trash2 size={15} />
+                            {deletingId === thought.id ? "Deleting..." : "Delete"}
+                          </button>
+                        </div>
+                      ) : null}
+                    </div>
+                  ) : null}
                 </div>
 
-                <p className="mt-4 whitespace-pre-wrap text-gray-200">
+                <button
+                  type="button"
+                  onClick={() => setSelectedThought(thought)}
+                  className="mt-4 block w-full whitespace-pre-wrap text-left text-gray-200"
+                >
                   {thought.text}
-                </p>
-              </button>
+                </button>
+              </div>
             );
           })}
 

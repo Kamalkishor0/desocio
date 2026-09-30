@@ -28,6 +28,7 @@ export function Profile({ username }: { username: string }) {
   const [friendsCount, setFriendsCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [profileVersion, setProfileVersion] = useState(0);
   const [selectedPost, setSelectedPost] = useState<FeedPost | null>(null);
   const [selectedThought, setSelectedThought] = useState<PublicThought | null>(null);
   const [activeTab, setActiveTab] = useState<"posts" | "thoughts">("posts");
@@ -35,6 +36,7 @@ export function Profile({ username }: { username: string }) {
   const { user: authUser } = useAuth();
   const [friendshipStatus, setFriendshipStatus] =
     useState<FriendshipStatusType>("none");
+  const [canViewContent, setCanViewContent] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -54,6 +56,7 @@ export function Profile({ username }: { username: string }) {
         setThoughts(Array.isArray(profile.thoughts) ? profile.thoughts : []);
         setFriendsCount(profile.friendsCount ?? 0);
         setFriendshipStatus(profile.friendshipStatus);
+        setCanViewContent(profile.canViewContent);
       } catch (err) {
         if (!active) return;
 
@@ -74,7 +77,7 @@ export function Profile({ username }: { username: string }) {
     return () => {
       active = false;
     };
-  }, [username]);
+  }, [username, profileVersion]);
 
   if (loading) {
     return (
@@ -137,6 +140,7 @@ export function Profile({ username }: { username: string }) {
     try {
       await api.acceptFriendRequest(user.id);
       setFriendshipStatus("friends");
+      setProfileVersion((version) => version + 1);
     } catch (err) {
       console.error(err);
     }
@@ -285,7 +289,9 @@ export function Profile({ username }: { username: string }) {
           </button>
         </div>
 
-        {activeTab === "posts" ? (
+        {!canViewContent ? (
+          <p className="font-bold text-gray-400">Be friends to see posts.</p>
+        ) : activeTab === "posts" ? (
           posts.length === 0 ? (
             <p className="text-gray-500">No posts yet.</p>
           ) : (

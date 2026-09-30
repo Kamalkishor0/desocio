@@ -3,6 +3,7 @@ import { PostReactionType, PostVisibility } from "@prisma/client";
 import { AuthenticatedRequest } from "../types/auth";
 import prisma from "../config/db";
 import { createNotification } from "../service/notifications.service";
+import { deleteCachedJson, profileCacheKey } from "../config/redis";
 
 function getSingleString(value: unknown): string | undefined {
     return typeof value === "string" ? value : undefined;
@@ -51,6 +52,16 @@ export async function createPost(req: AuthenticatedRequest, res: Response) {
         },
         include: { photos: true },
     });
+
+    const author = await prisma.user.findUnique({
+        where: { id: authorId },
+        select: { username: true },
+    });
+
+    if (author) {
+        await deleteCachedJson(profileCacheKey(author.username));
+    }
+
     res.status(201).json(post);
 }
 

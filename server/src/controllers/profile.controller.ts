@@ -137,6 +137,10 @@ export async function getProfileByUsername(
     }
   }
 
+  const canViewContent =
+    friendshipStatus === FriendshipStatus.SELF ||
+    friendshipStatus === FriendshipStatus.FRIENDS;
+
   res.json({
     user: {
       id: profile.id,
@@ -148,12 +152,13 @@ export async function getProfileByUsername(
       createdAt: profile.createdAt,
       lastSeenAt: profile.lastSeenAt,
     },
-    posts: profile.posts,
-    thoughts: profile.thoughts,
+    posts: canViewContent ? profile.posts : [],
+    thoughts: canViewContent ? profile.thoughts : [],
     friendsCount:
       profile._count.userAFriendships +
       profile._count.userBFriendships,
     friendshipStatus,
+    canViewContent,
   });
 }
 async function findSearchResults(username: string) {

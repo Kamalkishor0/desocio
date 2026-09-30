@@ -127,6 +127,9 @@ export function FeedBoard() {
         <FeedPostCard
           key={post.id}
           post={post}
+          onDeleted={(postId) =>
+            setPosts((current) => current.filter((item) => item.id !== postId))
+          }
         />
       ))}
 

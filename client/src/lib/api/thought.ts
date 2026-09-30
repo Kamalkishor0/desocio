@@ -193,4 +193,9 @@ export const thoughtApi = {
         visibility: data.visibility,
       },
     }),
+
+  delete: (id: string) =>
+    request(`/thoughts/${id}`, {
+      method: "DELETE",
+    }),
 };

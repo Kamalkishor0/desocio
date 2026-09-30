@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/context/AuthContext";
 import {
     ChevronLeft,
     ChevronRight,
@@ -8,7 +10,9 @@ import {
     Heart,
     Laugh,
     MessageCircle,
+    MoreVertical,
     Share2,
+    Trash2,
 } from "lucide-react";
 
 import { FeedPost } from "@/lib/api/feed";
@@ -38,9 +42,12 @@ const REACTIONS: {
 
 type Props = {
     post: FeedPost;
+    onDeleted?: (postId: string) => void;
 };
 
-export function FeedPostCard({ post }: Props) {
+export function FeedPostCard({ post, onDeleted }: Props) {
+    const router = useRouter();
+    const { user } = useAuth();
     const [photoIndex, setPhotoIndex] = useState(0);
 
     const [reaction, setReaction] = useState<PostReactionType | null>(
@@ -48,12 +55,30 @@ export function FeedPostCard({ post }: Props) {
     );
 
     const [modalOpen, setModalOpen] = useState(false);
+    const [menuOpen, setMenuOpen] = useState(false);
+    const [deleting, setDeleting] = useState(false);
 
     const photos = [...post.photos].sort(
         (a, b) => a.position - b.position
     );
 
     const avatar = resolveMediaUrl(post.author.profilePictureUrl);
+    const isOwner = user?.id === post.author.id;
+
+    async function handleDelete() {
+        if (deleting) return;
+
+        setDeleting(true);
+        try {
+            await postApi.delete(post.id);
+            onDeleted?.(post.id);
+        } catch (error) {
+            console.error("Failed to delete post:", error);
+        } finally {
+            setDeleting(false);
+            setMenuOpen(false);
+        }
+    }
 
     async function toggleReaction(type: PostReactionType) {
         const previous = reaction;
@@ -91,17 +116,54 @@ export function FeedPostCard({ post }: Props) {
                         </div>
                     )}
 
-                    <div className="min-w-0">
-                        <p className="truncate font-semibold text-white">
+                    <div className="min-w-0 flex-1">
+                        <button
+                            type="button"
+                            onClick={() => router.push(`/home/profile/${post.author.username}`)}
+                            className="block max-w-full truncate text-left font-semibold text-white hover:underline"
+                        >
                             {post.author.name}
-                        </p>
+                        </button>
 
                         <div className="flex items-center gap-2 text-sm text-gray-400">
-                            <span className="truncate">@{post.author.username}</span>
+                            <button
+                                type="button"
+                                onClick={() => router.push(`/home/profile/${post.author.username}`)}
+                                className="truncate hover:text-white hover:underline"
+                            >
+                                @{post.author.username}
+                            </button>
                             <span>•</span>
                             <span className="text-xs">{formatDate(post.createdAt)}</span>
                         </div>
                     </div>
+
+                    {isOwner ? (
+                        <div className="relative shrink-0">
+                            <button
+                                type="button"
+                                aria-label="Post options"
+                                aria-expanded={menuOpen}
+                                onClick={() => setMenuOpen((open) => !open)}
+                                className="rounded-full p-2 text-gray-400 transition hover:bg-gray-800 hover:text-white"
+                            >
+                                <MoreVertical size={18} />
+                            </button>
+                            {menuOpen ? (
+                                <div className="absolute right-0 top-10 z-10 min-w-32 rounded-xl border border-gray-700 bg-[#111113] p-1 shadow-xl">
+                                    <button
+                                        type="button"
+                                        disabled={deleting}
+                                        onClick={handleDelete}
+                                        className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-red-300 transition hover:bg-red-400/10 disabled:opacity-50"
+                                    >
+                                        <Trash2 size={15} />
+                                        {deleting ? "Deleting..." : "Delete"}
+                                    </button>
+                                </div>
+                            ) : null}
+                        </div>
+                    ) : null}
 
                 </div>
 

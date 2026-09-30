@@ -10,6 +10,7 @@ export interface ProfileResponse {
   thoughts: Thought[];
   friendsCount: number;
   friendshipStatus: FriendshipStatusType;
+  canViewContent: boolean;
 }
 
 export type SearchUser = Pick<
