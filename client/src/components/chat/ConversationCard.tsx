@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ConversationListItem } from "@/types/chat";
+import { resolveMediaUrl } from "@/lib/media";
 
 type Props = {
   conversation: ConversationListItem;
@@ -14,6 +15,9 @@ export function ConversationCard({
   const pathname = usePathname();
   const href = `/home/chat/${conversation.id}`;
   const isActive = pathname === href;
+  const avatarUrl = resolveMediaUrl(
+    conversation.otherUser.profilePictureUrl
+  );
 
   return (
     <Link
@@ -22,7 +26,17 @@ export function ConversationCard({
         isActive ? "bg-[#080809]" : ""
       }`}
     >
-      <div className="h-12 w-12 rounded-full bg-[#080809]" />
+      {avatarUrl ? (
+        <img
+          src={avatarUrl}
+          alt={conversation.otherUser.username}
+          className="h-12 w-12 rounded-full object-cover"
+        />
+      ) : (
+        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#080809] font-semibold">
+          {conversation.otherUser.username[0]?.toUpperCase()}
+        </div>
+      )}
 
       <div className="min-w-0 flex-1">
         <p className="font-medium">

@@ -222,6 +222,41 @@ export async function getMessages({
         hasMore: page.hasMore,
     };
 }
+
+type GetConversationInput = {
+    currentUserId: string;
+    conversationId: string;
+};
+
+export async function getConversation({
+    currentUserId,
+    conversationId,
+}: GetConversationInput): Promise<ConversationResponse> {
+    await validateConversation({
+        currentUserId,
+        conversationId,
+    });
+
+    const conversation = await prisma.conversation.findUnique({
+        where: { id: conversationId },
+        include: {
+            participants: {
+                include: {
+                    user: {
+                        select: userPreviewSelect,
+                    },
+                },
+            },
+        },
+    });
+
+    if (!conversation) {
+        throw new ApiError(404, "Conversation not found");
+    }
+
+    return mapConversation(conversation, currentUserId);
+}
+
 export async function sendMessage({
     currentUserId,
     conversationId,

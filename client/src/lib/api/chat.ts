@@ -16,6 +16,12 @@ export const chatApi = {
     );
   },
 
+  getConversation(conversationId: string) {
+    return request<ConversationResponse>(
+      `/chat/conversations/${conversationId}`
+    );
+  },
+
   getConversations() {
     return request<ConversationListItem[]>("/chat/conversations");
   },

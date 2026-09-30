@@ -8,6 +8,7 @@ import type { PostComment } from "@/lib/api/post";
 import type { PostReactionType } from "@/types/post";
 import { formatDate, resolveMediaUrl } from "@/lib/media";
 import { useAuth } from "@/context/AuthContext";
+import { EmojiPicker } from "@/components/emoji-picker";
 
 type PostAuthor = {
   id: string;
@@ -407,6 +408,9 @@ export function PostModal({ post, author, onClose, onReactionChange, onDeleted }
             ) : null}
 
             <form onSubmit={submitComment} className="mt-3 flex items-center gap-2">
+              <EmojiPicker
+                onSelect={(emoji) => setCommentText((current) => `${current}${emoji}`)}
+              />
               <input
                 ref={commentInputRef}
                 type="text"

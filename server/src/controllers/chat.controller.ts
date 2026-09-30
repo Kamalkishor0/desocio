@@ -69,6 +69,34 @@ export async function getMessages(
     return res.json(messages);
 }
 
+export async function getConversation(
+    req: AuthenticatedRequest,
+    res: Response
+) {
+    const auth = req.auth;
+
+    if (!auth) {
+        return res.status(401).json({
+            message: "Unauthorized",
+        });
+    }
+
+    const conversationId = getParam(req.params.conversationId);
+
+    if (!conversationId) {
+        return res.status(400).json({
+            message: "Conversation ID is required",
+        });
+    }
+
+    const conversation = await chatService.getConversation({
+        currentUserId: auth.id,
+        conversationId,
+    });
+
+    return res.json(conversation);
+}
+
 export async function getConversations(
     req: AuthenticatedRequest,
     res: Response

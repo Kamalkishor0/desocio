@@ -2,6 +2,7 @@ import { Router } from "express";
 import { authMiddleware } from "../middlewares/auth.middleware";
 import {
 	getConversations,
+	getConversation,
 	getMessages,
 	openConversation,
 	sendMessage,
@@ -10,6 +11,7 @@ const router = Router();
 
 router.post("/conversations/:userId", authMiddleware, openConversation);
 router.get("/conversations", authMiddleware, getConversations);
+router.get("/conversations/:conversationId", authMiddleware, getConversation);
 router.get("/conversations/:conversationId/messages", authMiddleware, getMessages);
 router.post("/conversations/:conversationId/messages", authMiddleware, sendMessage);
 export default router;

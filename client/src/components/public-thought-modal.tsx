@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { thoughtApi, type PublicThought, type ThoughtComment } from "@/lib/api/thought";
 import { formatDate, resolveMediaUrl } from "@/lib/media";
+import { EmojiPicker } from "@/components/emoji-picker";
 
 type Props = {
   thought: PublicThought;
@@ -386,6 +387,9 @@ export function PublicThoughtModal({ thought, onClose, onDeleted }: Props) {
             </div>
 
             <form onSubmit={submitComment} className="mt-3 flex items-center gap-2">
+              <EmojiPicker
+                onSelect={(emoji) => setCommentText((current) => `${current}${emoji}`)}
+              />
               <input
                 ref={commentInputRef}
                 type="text"

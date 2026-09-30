@@ -51,6 +51,19 @@ export function registerChatHandlers(
 
             socket.join(conversationId);
 
+            const roomSockets = await io.in(conversationId).fetchSockets();
+            for (const roomSocket of roomSockets) {
+                if (roomSocket.id !== socket.id) {
+                    socket.emit("chat:user-online", {
+                        userId: roomSocket.data.user.id,
+                    });
+                }
+            }
+
+            socket.to(conversationId).emit("chat:user-online", {
+                userId: socket.data.user.id,
+            });
+
             console.log("ROOMS:", [...socket.rooms]);
 
             socket.emit("chat:joined", {
@@ -65,6 +78,9 @@ export function registerChatHandlers(
     socket.on(
         "chat:leave",
         ({ conversationId }: LeaveConversationPayload) => {
+            socket.to(conversationId).emit("chat:user-offline", {
+                userId: socket.data.user.id,
+            });
             socket.leave(conversationId);
 
             socket.emit("chat:left", {
@@ -98,7 +114,24 @@ export function registerChatHandlers(
         }
     );
 
+    socket.on(
+        "chat:typing",
+        ({ conversationId, isTyping }: JoinConversationPayload & { isTyping: boolean }) => {
+            socket.to(conversationId).emit("chat:user-typing", {
+                userId: socket.data.user.id,
+                isTyping,
+            });
+        }
+    );
+
     socket.on("disconnect", () => {
+        for (const room of socket.rooms) {
+            if (room !== socket.id) {
+                socket.to(room).emit("chat:user-offline", {
+                    userId: socket.data.user.id,
+                });
+            }
+        }
         console.log(
             `Chat socket disconnected: ${socket.data.user.username}`
         );
