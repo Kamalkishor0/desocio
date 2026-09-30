@@ -5,6 +5,7 @@ import prisma from "../config/db";
 import { createFeedCursor, parseFeedCursor } from "../utils/cursor";
 import { getPaginationLimit } from "../utils/pagination";
 import { createNotification } from "../service/notifications.service";
+import { deleteCachedJson, profileCacheKey } from "../config/redis";
 
 function getSingleString(value: unknown): string | undefined {
     return typeof value === "string" ? value : undefined;
@@ -248,6 +249,13 @@ export async function deleteThought(req: AuthenticatedRequest, res: Response) {
     }
 
     await prisma.thought.delete({ where: { id: thoughtId } });
+    const author = await prisma.user.findUnique({
+        where: { id: auth.id },
+        select: { username: true },
+    });
+    if (author) {
+        await deleteCachedJson(profileCacheKey(author.username));
+    }
     return res.json({ message: "Thought deleted" });
 }
 

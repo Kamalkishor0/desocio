@@ -370,11 +370,16 @@ export function Profile({ username }: { username: string }) {
         <PostModal
           post={selectedPost}
           author={{
+            id: user.id,
             name: user.name,
             username: user.username,
             profilePictureUrl: user.profilePictureUrl,
           }}
           onClose={() => setSelectedPost(null)}
+          onDeleted={() => {
+            setPosts((current) => current.filter((post) => post.id !== selectedPost.id));
+            setSelectedPost(null);
+          }}
         />
       ) : null}
 
@@ -382,6 +387,12 @@ export function Profile({ username }: { username: string }) {
         <PublicThoughtModal
           thought={selectedThought}
           onClose={() => setSelectedThought(null)}
+          onDeleted={() => {
+            setThoughts((current) =>
+              current.filter((thought) => thought.id !== selectedThought.id)
+            );
+            setSelectedThought(null);
+          }}
         />
       ) : null}
     </div>

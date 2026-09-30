@@ -134,6 +134,13 @@ export async function deletePost(req: AuthenticatedRequest, res: Response) {
         return res.status(404).json({ message: "Post not found" });
     }
     await prisma.post.delete({ where: { id: postId } });
+    const author = await prisma.user.findUnique({
+        where: { id: auth.id },
+        select: { username: true },
+    });
+    if (author) {
+        await deleteCachedJson(profileCacheKey(author.username));
+    }
     res.json({ message: "Post deleted" });
 }
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { Send, Bookmark, MessageCircle, ThumbsUp, X } from "lucide-react";
+import { Send, Bookmark, MessageCircle, MoreVertical, ThumbsUp, Trash2, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { thoughtApi, type PublicThought, type ThoughtComment } from "@/lib/api/thought";
@@ -9,6 +9,7 @@ import { formatDate, resolveMediaUrl } from "@/lib/media";
 type Props = {
   thought: PublicThought;
   onClose: () => void;
+  onDeleted?: () => void;
 };
 
 function initialFor(thought: PublicThought) {
@@ -16,7 +17,7 @@ function initialFor(thought: PublicThought) {
   return source.charAt(0).toUpperCase();
 }
 
-export function PublicThoughtModal({ thought, onClose }: Props) {
+export function PublicThoughtModal({ thought, onClose, onDeleted }: Props) {
   const { user } = useAuth();
   const [currentThought, setCurrentThought] = useState(thought);
   const [comments, setComments] = useState<ThoughtComment[]>([]);
@@ -30,9 +31,28 @@ export function PublicThoughtModal({ thought, onClose }: Props) {
   const [submittingComment, setSubmittingComment] = useState(false);
   const [togglingSupport, setTogglingSupport] = useState(false);
   const [togglingSave, setTogglingSave] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const commentInputRef = useRef<HTMLInputElement>(null);
 
   const avatarUrl = resolveMediaUrl(currentThought.author.profilePictureUrl);
+  const isOwner = user?.id === currentThought.author.id;
+
+  async function handleDelete() {
+    if (deleting) return;
+
+    setDeleting(true);
+    try {
+      await thoughtApi.delete(currentThought.id);
+      onDeleted?.();
+      onClose();
+    } catch (error) {
+      console.error("Failed to delete thought:", error);
+    } finally {
+      setDeleting(false);
+      setMenuOpen(false);
+    }
+  }
 
   useEffect(() => {
     let active = true;
@@ -249,7 +269,7 @@ export function PublicThoughtModal({ thought, onClose }: Props) {
         className="flex h-[85vh] max-h-[90vh] w-full max-w-4xl flex-col overflow-hidden rounded-2xl border border-gray-700 bg-[#080809] md:flex-row"
         onClick={(event) => event.stopPropagation()}
       >
-        <div className="flex min-h-0 flex-1 flex-col md:w-[55%]">
+        <div className="relative flex min-h-0 flex-1 flex-col md:w-[55%]">
           <div className="flex items-start justify-between gap-3 border-b border-gray-700 p-4">
             <div className="flex min-w-0 gap-3">
               {commentAvatar ? (
@@ -275,14 +295,42 @@ export function PublicThoughtModal({ thought, onClose }: Props) {
               </div>
             </div>
 
-            <button
+            <div className="flex items-center gap-1">
+              {isOwner ? (
+                <div className="relative">
+                  <button
+                    type="button"
+                    aria-label="Thought options"
+                    aria-expanded={menuOpen}
+                    onClick={() => setMenuOpen((open) => !open)}
+                    className="rounded-full p-2 text-gray-400 transition hover:bg-[#080809] hover:text-white"
+                  >
+                    <MoreVertical size={20} />
+                  </button>
+                  {menuOpen ? (
+                    <div className="absolute right-0 top-11 z-10 min-w-32 rounded-xl border border-gray-700 bg-[#111113] p-1 shadow-xl">
+                      <button
+                        type="button"
+                        disabled={deleting}
+                        onClick={handleDelete}
+                        className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-red-300 transition hover:bg-red-400/10 disabled:opacity-50"
+                      >
+                        <Trash2 size={15} />
+                        {deleting ? "Deleting..." : "Delete"}
+                      </button>
+                    </div>
+                  ) : null}
+                </div>
+              ) : null}
+              <button
               type="button"
               onClick={onClose}
               aria-label="Close"
               className="shrink-0 rounded-full p-1 text-gray-400 transition hover:bg-[#080809] hover:text-white"
-            >
-              <X size={20} />
-            </button>
+              >
+                <X size={20} />
+              </button>
+            </div>
           </div>
 
           <div className="slim-scrollbar min-h-0 flex-1 space-y-3 overflow-y-auto p-4 md:max-h-[42vh]">

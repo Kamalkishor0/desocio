@@ -1,14 +1,16 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { ChevronLeft, ChevronRight, Hand, Heart, Laugh, Send, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Hand, Heart, Laugh, MoreVertical, Send, Trash2, X } from "lucide-react";
 import { postApi } from "@/lib/api/post";
 import type { FeedPost } from "@/lib/api/feed";
 import type { PostComment } from "@/lib/api/post";
 import type { PostReactionType } from "@/types/post";
 import { formatDate, resolveMediaUrl } from "@/lib/media";
+import { useAuth } from "@/context/AuthContext";
 
 type PostAuthor = {
+  id: string;
   name : string;
   username: string;
   profilePictureUrl?: string | null;
@@ -19,6 +21,7 @@ type PostModalProps = {
   author: PostAuthor;
   onClose: () => void;
   onReactionChange?: (reaction: PostReactionType | null) => void;
+  onDeleted?: () => void;
 };
 
 const REACTIONS: Array<{
@@ -31,7 +34,8 @@ const REACTIONS: Array<{
   { type: "laugh", label: "Laugh", Icon: Laugh },
 ];
 
-export function PostModal({ post, author, onClose, onReactionChange }: PostModalProps) {
+export function PostModal({ post, author, onClose, onReactionChange, onDeleted }: PostModalProps) {
+  const { user } = useAuth();
   const [reaction, setReaction] = useState<PostReactionType | null>(null);
   const [comments, setComments] = useState<PostComment[]>([]);
   const [commentText, setCommentText] = useState("");
@@ -41,11 +45,30 @@ export function PostModal({ post, author, onClose, onReactionChange }: PostModal
   );
   const commentInputRef = useRef<HTMLInputElement>(null);
   const [photoIndex, setPhotoIndex] = useState(0);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const photos = post.photos
     ? post.photos.slice().sort((a, b) => a.position - b.position)
     : [];
   const avatarUrl = resolveMediaUrl(author.profilePictureUrl);
+  const isOwner = user?.id === author.id;
+
+  async function handleDelete() {
+    if (deleting) return;
+
+    setDeleting(true);
+    try {
+      await postApi.delete(post.id);
+      onDeleted?.();
+      onClose();
+    } catch (error) {
+      console.error("Failed to delete post:", error);
+    } finally {
+      setDeleting(false);
+      setMenuOpen(false);
+    }
+  }
 
   useEffect(() => {
     setPhotoIndex(0);
@@ -212,6 +235,32 @@ export function PostModal({ post, author, onClose, onReactionChange }: PostModal
         onClick={(event) => event.stopPropagation()}
       >
         <div className="relative flex items-center justify-center bg-[#080809] md:w-1/2">
+          {isOwner ? (
+            <div className="absolute right-3 top-3 z-10">
+              <button
+                type="button"
+                aria-label="Post options"
+                aria-expanded={menuOpen}
+                onClick={() => setMenuOpen((open) => !open)}
+                className="rounded-full bg-black/60 p-2 text-white transition hover:bg-black/80"
+              >
+                <MoreVertical size={20} />
+              </button>
+              {menuOpen ? (
+                <div className="absolute right-0 top-11 min-w-32 rounded-xl border border-gray-700 bg-[#111113] p-1 shadow-xl">
+                  <button
+                    type="button"
+                    disabled={deleting}
+                    onClick={handleDelete}
+                    className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-red-300 transition hover:bg-red-400/10 disabled:opacity-50"
+                  >
+                    <Trash2 size={15} />
+                    {deleting ? "Deleting..." : "Delete"}
+                  </button>
+                </div>
+              ) : null}
+            </div>
+          ) : null}
           {photos.length > 0 ? (
             <div className="flex h-full max-h-[45vh] w-full items-center justify-center md:max-h-[90vh]">
               <img
